@@ -26,8 +26,8 @@ void CKinectStation::SetupProperties()
     ms_vrProperties->SetBoolProperty(m_propertyContainer, vr::Prop_WillDriftInYaw_Bool, false);
     ms_vrProperties->SetBoolProperty(m_propertyContainer, vr::Prop_CanWirelessIdentify_Bool, false);
 
-    ms_vrProperties->SetFloatProperty(m_propertyContainer, vr::Prop_FieldOfViewLeftDegrees_Float, 60.f);
-    ms_vrProperties->SetFloatProperty(m_propertyContainer, vr::Prop_FieldOfViewRightDegrees_Float, 60.f);
+    ms_vrProperties->SetFloatProperty(m_propertyContainer, vr::Prop_FieldOfViewLeftDegrees_Float, 70.f);
+    ms_vrProperties->SetFloatProperty(m_propertyContainer, vr::Prop_FieldOfViewRightDegrees_Float, 70.f);
     ms_vrProperties->SetFloatProperty(m_propertyContainer, vr::Prop_FieldOfViewTopDegrees_Float, 60.f);
     ms_vrProperties->SetFloatProperty(m_propertyContainer, vr::Prop_FieldOfViewBottomDegrees_Float, 60.f);
     ms_vrProperties->SetFloatProperty(m_propertyContainer, vr::Prop_TrackingRangeMinimumMeters_Float, 0.5f);

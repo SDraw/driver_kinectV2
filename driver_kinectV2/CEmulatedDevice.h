@@ -33,6 +33,9 @@ protected:
     void SetPosition(float f_x, float f_y, float f_z);
     void SetRotation(float f_x, float f_y, float f_z, float f_w);
 
+    void SetOffsetPosition(float f_x, float f_y, float f_z);
+    void SetOffsetRotation(float f_x, float f_y, float f_z, float f_w);
+
     void Update();
 
     static void SetInterfaces(vr::IVRServerDriverHost *f_host, vr::CVRPropertyHelpers *f_properties);

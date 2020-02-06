@@ -5,6 +5,10 @@ Simple driver for Kinect Sensor 2.0 without external dependencies.
 * Install [Kinect for Windows Runtime 2.0](https://www.microsoft.com/en-us/download/details.aspx?id=44559).
 * Create directory 'kinectV2' in 'SteamVR/drivers' directory.
 * Extract latest release archive to 'kinectV2'.
+* Add line in section 'steamvr' of '<Steam_folder>/config/steamvr.vrsettings' file:
+  ```JSON
+  "activateMultipleDrivers": true,
+  ```
 
 # Calibration
 * Launch 'kinect_calibrator' from 'kinectV2/bin/win##' directory.

@@ -90,9 +90,8 @@ void CKinectHandler::Update()
         if(m_bodyFrameReader->AcquireLatestFrame(&l_bodyFrame) >= S_OK)
         {
             IBody *l_bodies[BODY_COUNT] = { nullptr };
-            if(l_bodyFrame->GetAndRefreshBodyData(BODY_COUNT, l_bodies) >= S_OK)
+            if(l_bodyFrame->GetAndRefreshBodyData(BODY_COUNT, l_bodies) >= S_OK) // Only first visible body
             {
-                // Get only first valid body
                 for(size_t i = 0U, j = static_cast<size_t>(BODY_COUNT); i < j; i++)
                 {
                     if(l_bodies[i])
@@ -124,6 +123,7 @@ void CKinectHandler::Update()
                                         m_jointData[k].rw = l_smoothedRotation.w;
                                     }
                                 }
+
                                 break;
                             }
                         }
@@ -131,7 +131,7 @@ void CKinectHandler::Update()
                 }
             }
 
-            for(size_t i = 0U; i < BODY_COUNT; i++)
+            for(size_t i = 0U, j = static_cast<size_t>(BODY_COUNT); i < j; i++)
             {
                 if(l_bodies[i]) l_bodies[i]->Release();
             }

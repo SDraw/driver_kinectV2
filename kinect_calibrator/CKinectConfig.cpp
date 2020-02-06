@@ -69,7 +69,7 @@ void CKinectConfig::Load()
     }
     else
     {
-        std::cout << "Unable to load existing 'resources/settings.xml', creating new." << std::endl;
+        std::cout << "[!] Unable to load existing 'resources/settings.xml', creating new." << std::endl;
 
         pugi::xml_node l_root = m_document->append_child("settings");
         if(l_root)
@@ -143,7 +143,7 @@ void CKinectConfig::Save()
         }
     }
 
-    if(!m_document->save_file(m_path.c_str())) std::cout << "Unable to save file 'resources/settings.xml'." << std::endl;
+    if(!m_document->save_file(m_path.c_str())) std::cout << "[!] Unable to save file 'resources/settings.xml'." << std::endl;
 }
 
 void CKinectConfig::SetPosition(const glm::vec3 &f_pos)

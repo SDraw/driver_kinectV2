@@ -17,9 +17,9 @@ CEmulatedDevice::CEmulatedDevice()
     m_pose.qDriverFromHeadRotation.x = .0;
     m_pose.qDriverFromHeadRotation.y = .0;
     m_pose.qDriverFromHeadRotation.z = .0;
-    m_pose.vecDriverFromHeadTranslation[0] = .0;
-    m_pose.vecDriverFromHeadTranslation[1] = .0;
-    m_pose.vecDriverFromHeadTranslation[2] = .0;
+    m_pose.vecDriverFromHeadTranslation[0U] = .0;
+    m_pose.vecDriverFromHeadTranslation[1U] = .0;
+    m_pose.vecDriverFromHeadTranslation[2U] = .0;
     m_pose.poseIsValid = false;
     m_pose.willDriftInYaw = false;
     m_pose.shouldApplyHeadModel = false;
@@ -73,9 +73,9 @@ vr::DriverPose_t CEmulatedDevice::GetPose()
 
 void CEmulatedDevice::SetPosition(float f_x, float f_y, float f_z)
 {
-    m_pose.vecPosition[0] = f_x;
-    m_pose.vecPosition[1] = f_y;
-    m_pose.vecPosition[2] = f_z;
+    m_pose.vecPosition[0U] = f_x;
+    m_pose.vecPosition[1U] = f_y;
+    m_pose.vecPosition[2U] = f_z;
 }
 
 void CEmulatedDevice::SetRotation(float f_x, float f_y, float f_z, float f_w)
@@ -84,6 +84,21 @@ void CEmulatedDevice::SetRotation(float f_x, float f_y, float f_z, float f_w)
     m_pose.qRotation.y = f_y;
     m_pose.qRotation.z = f_z;
     m_pose.qRotation.w = f_w;
+}
+
+void CEmulatedDevice::SetOffsetPosition(float f_x, float f_y, float f_z)
+{
+    m_pose.vecWorldFromDriverTranslation[0U] = f_x;
+    m_pose.vecWorldFromDriverTranslation[1U] = f_y;
+    m_pose.vecWorldFromDriverTranslation[2U] = f_z;
+}
+
+void CEmulatedDevice::SetOffsetRotation(float f_x, float f_y, float f_z, float f_w)
+{
+    m_pose.qWorldFromDriverRotation.x = f_x;
+    m_pose.qWorldFromDriverRotation.y = f_y;
+    m_pose.qWorldFromDriverRotation.z = f_z;
+    m_pose.qWorldFromDriverRotation.w = f_w;
 }
 
 void CEmulatedDevice::Update()

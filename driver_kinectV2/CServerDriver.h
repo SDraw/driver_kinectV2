@@ -16,8 +16,6 @@ class CServerDriver final : public vr::IServerTrackedDeviceProvider
     CEmulatedDevice *m_kinectStation;
     std::vector<CEmulatedDevice*> m_trackers;
 
-    glm::mat4 m_baseMatrix;
-
     CServerDriver(const CServerDriver &that) = delete;
     CServerDriver& operator=(const CServerDriver &that) = delete;
 

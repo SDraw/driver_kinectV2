@@ -20,9 +20,6 @@ enum TrackerBodyPart : size_t
     TBP_Count
 };
 
-const glm::mat4 g_Identity(1.f);
-const glm::vec4 g_IdentityPoint(0.f, 0.f, 0.f, 1.f);
-
 const std::vector<std::string> g_MessageNames
 {
     "calibrate"
@@ -45,8 +42,6 @@ CServerDriver::CServerDriver()
     m_kinectStation = nullptr;
     m_kinectThread = nullptr;
     m_kinectActive = false;
-
-    m_baseMatrix = g_Identity;
 }
 CServerDriver::~CServerDriver()
 {
@@ -82,9 +77,13 @@ vr::EVRInitError CServerDriver::Init(vr::IVRDriverContext *pDriverContext)
         // Coordinates offset
         const glm::vec3 &l_position = CDriverConfig::GetBasePosition();
         const glm::quat &l_rotation = CDriverConfig::GetBaseRotation();
-        m_baseMatrix = glm::translate(g_Identity, l_position) * glm::mat4_cast(l_rotation);
         m_kinectStation->SetPosition(l_position.x, l_position.y, l_position.z);
-        m_kinectStation->SetRotation(l_rotation.x, l_rotation.y, l_rotation.z,l_rotation.w);
+        m_kinectStation->SetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
+        for(auto l_tracker : m_trackers)
+        {
+            l_tracker->SetOffsetPosition(l_position.x, l_position.y, l_position.z);
+            l_tracker->SetOffsetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
+        }
 
         l_error = vr::VRInitError_None;
     }
@@ -96,10 +95,11 @@ void CServerDriver::Cleanup()
 {
     for(auto l_tracker : m_trackers) delete l_tracker;
     m_trackers.clear();
-    CEmulatedDevice::SetInterfaces(nullptr, nullptr);
 
     delete m_kinectStation;
     m_kinectStation = nullptr;
+
+    CEmulatedDevice::SetInterfaces(nullptr, nullptr);
 
     if(m_kinectThread)
     {
@@ -134,16 +134,8 @@ void CServerDriver::RunFrame()
             for(size_t i = 0U; i < TBP_Count; i++)
             {
                 const JointData &l_jointData = m_kinectHandler->GetJointData(i);
-                glm::vec3 l_position(-l_jointData.x, l_jointData.y, -l_jointData.z);
-                glm::quat l_rotation(l_jointData.rw, -l_jointData.rx, l_jointData.ry, -l_jointData.rz);
-
-                glm::mat4 l_localTransform = glm::translate(g_Identity, l_position)*glm::mat4_cast(l_rotation);
-                glm::mat4 l_globalTransform = m_baseMatrix*l_localTransform;
-                l_position = l_globalTransform*g_IdentityPoint;
-                l_rotation = glm::quat_cast(l_globalTransform);
-
-                m_trackers[i]->SetPosition(l_position.x, l_position.y, l_position.z);
-                m_trackers[i]->SetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
+                m_trackers[i]->SetPosition(-l_jointData.x, l_jointData.y, -l_jointData.z);
+                m_trackers[i]->SetRotation(-l_jointData.rx, l_jointData.ry, -l_jointData.rz, l_jointData.rw);
             }
             m_kinectLock.unlock();
         }
@@ -151,7 +143,7 @@ void CServerDriver::RunFrame()
 
     // Update devices
     m_kinectStation->Update();
-    for(auto *l_tracker : m_trackers) l_tracker->Update();
+    for(auto l_tracker : m_trackers) l_tracker->Update();
 }
 
 void CServerDriver::KinectProcess()
@@ -188,12 +180,16 @@ void CServerDriver::ProcessExternalMessage(const char *f_message)
             case MessageIndex::MI_Calibrate:
             {
                 glm::vec3 l_position(0.f);
-                glm::quat l_rotation(1.f,0.f,0.f,0.f);
+                glm::quat l_rotation(1.f, 0.f, 0.f, 0.f);
                 l_stream >> l_position.x >> l_position.y >> l_position.z >> l_rotation.x >> l_rotation.y >> l_rotation.z >> l_rotation.w;
 
-                m_baseMatrix = glm::translate(g_Identity, l_position)*glm::mat4_cast(l_rotation);
                 m_kinectStation->SetPosition(l_position.x, l_position.y, l_position.z);
-                m_kinectStation->SetRotation(l_rotation.x, l_rotation.y, l_rotation.z,l_rotation.w);
+                m_kinectStation->SetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
+                for(auto l_tracker : m_trackers)
+                {
+                    l_tracker->SetOffsetPosition(l_position.x, l_position.y, l_position.z);
+                    l_tracker->SetOffsetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
+                }
             } break;
         }
     }

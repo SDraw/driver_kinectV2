@@ -5,15 +5,15 @@
 #include <Windows.h>
 
 #include <iostream>
-#include <vector>
+#include <string>
 #include <sstream>
+#include <vector>
 #include <chrono>
 #include <thread>
 
 #include "openvr.h"
 
 #include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/quaternion.hpp"
 
 #include "pugixml.hpp"
