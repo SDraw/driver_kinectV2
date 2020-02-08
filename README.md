@@ -17,6 +17,9 @@ Simple driver for Kinect Sensor 2.0 without external dependencies.
   * Right controller's touchpad: forward, backward, rotate left and rotate right.
 * Press application menu button or quit from SteamVR to save alligned base transformation.
 
+# Usage
+* Press **Ctrl-T** to disable/enable tracking.
+
 # Building
 * Install [Kinect for Windows SDK 2.0](https://www.microsoft.com/en-us/download/details.aspx?id=44561).
 * Clone repository using git.
