@@ -22,11 +22,12 @@ enum TrackerBodyPart : size_t
 
 const std::vector<std::string> g_MessageNames
 {
-    "calibrate"
+    "calibrate", "switch"
 };
 enum MessageIndex : size_t
 {
-    MI_Calibrate = 0U
+    MI_Calibrate = 0U,
+    MI_Switch
 };
 
 const char* const CServerDriver::ms_interfaces[] = {
@@ -42,6 +43,7 @@ CServerDriver::CServerDriver()
     m_kinectStation = nullptr;
     m_kinectThread = nullptr;
     m_kinectActive = false;
+    m_hotkeyState = false;
 }
 CServerDriver::~CServerDriver()
 {
@@ -127,17 +129,26 @@ bool CServerDriver::ShouldBlockStandbyMode()
 
 void CServerDriver::RunFrame()
 {
-    if(m_kinectHandler)
+    if(m_kinectLock.try_lock())
     {
-        if(m_kinectLock.try_lock())
+        for(size_t i = 0U; i < TBP_Count; i++)
         {
-            for(size_t i = 0U; i < TBP_Count; i++)
-            {
-                const JointData &l_jointData = m_kinectHandler->GetJointData(i);
-                m_trackers[i]->SetPosition(-l_jointData.x, l_jointData.y, -l_jointData.z);
-                m_trackers[i]->SetRotation(-l_jointData.rx, l_jointData.ry, -l_jointData.rz, l_jointData.rw);
-            }
-            m_kinectLock.unlock();
+            const JointData &l_jointData = m_kinectHandler->GetJointData(i);
+            m_trackers[i]->SetPosition(-l_jointData.x, l_jointData.y, -l_jointData.z);
+            m_trackers[i]->SetRotation(-l_jointData.rx, l_jointData.ry, -l_jointData.rz, l_jointData.rw);
+        }
+        m_kinectLock.unlock();
+    }
+
+    bool l_hotkeyState = ((GetAsyncKeyState(VK_CONTROL) & 0x8000) && (GetAsyncKeyState(0x54) & 0x8000)); // Ctrl+T
+    if(m_hotkeyState != l_hotkeyState)
+    {
+        m_hotkeyState = l_hotkeyState;
+        if(m_hotkeyState)
+        {
+            // Switch tracking
+            for(auto l_tracker : m_trackers) l_tracker->SetConnected(!l_tracker->IsConnected());
+            m_kinectHandler->SetPaused(!m_kinectHandler->IsPaused());
         }
     }
 
@@ -168,7 +179,9 @@ void CServerDriver::KinectProcess()
 
 void CServerDriver::ProcessExternalMessage(const char *f_message)
 {
-    // Messages: calibrate x y z rx ry rz rw
+    // [ Messages ]
+    // "calibrate x y z rx ry rz rw" - change base offset
+    // "switch" - switch devices and tracking
     std::stringstream l_stream(f_message);
 
     std::string l_message;
@@ -190,6 +203,11 @@ void CServerDriver::ProcessExternalMessage(const char *f_message)
                     l_tracker->SetOffsetPosition(l_position.x, l_position.y, l_position.z);
                     l_tracker->SetOffsetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
                 }
+            } break;
+            case MessageIndex::MI_Switch:
+            {
+                for(auto l_tracker : m_trackers) l_tracker->SetConnected(!l_tracker->IsConnected());
+                m_kinectHandler->SetPaused(!m_kinectHandler->IsPaused());
             } break;
         }
     }

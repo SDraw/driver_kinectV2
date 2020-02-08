@@ -18,6 +18,7 @@ CKinectHandler::CKinectHandler()
         m_jointData[i] = { 0.f };
         m_jointFilters.push_back(new CJointFilter());
     }
+    m_paused = false;
 }
 CKinectHandler::~CKinectHandler()
 {
@@ -48,7 +49,11 @@ bool CKinectHandler::Initialize()
             {
                 if(m_kinectSensor->get_BodyFrameSource(&l_bodyFrameSource) >= S_OK)
                 {
-                    l_result = (l_bodyFrameSource->OpenReader(&m_bodyFrameReader) >= S_OK);
+                    if(l_bodyFrameSource->OpenReader(&m_bodyFrameReader) >= S_OK)
+                    {
+                        m_paused = false;
+                        l_result = true;
+                    }
                 }
             }
 
@@ -80,11 +85,18 @@ void CKinectHandler::Cleanup()
         m_kinectSensor->Release();
         m_kinectSensor = nullptr;
     }
+
+    m_paused = false;
+}
+
+void CKinectHandler::SetPaused(bool f_state)
+{
+    if(m_kinectSensor && m_bodyFrameReader) m_paused = f_state;
 }
 
 void CKinectHandler::Update()
 {
-    if(m_kinectSensor && m_bodyFrameReader)
+    if(m_kinectSensor && m_bodyFrameReader && !m_paused)
     {
         IBodyFrame* l_bodyFrame = nullptr;
         if(m_bodyFrameReader->AcquireLatestFrame(&l_bodyFrame) >= S_OK)

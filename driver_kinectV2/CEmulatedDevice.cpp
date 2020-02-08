@@ -71,6 +71,16 @@ vr::DriverPose_t CEmulatedDevice::GetPose()
     return m_pose;
 }
 
+bool CEmulatedDevice::IsConnected()
+{
+    return m_pose.deviceIsConnected;
+}
+
+void CEmulatedDevice::SetConnected(bool f_state)
+{
+    m_pose.deviceIsConnected = f_state;
+}
+
 void CEmulatedDevice::SetPosition(float f_x, float f_y, float f_z)
 {
     m_pose.vecPosition[0U] = f_x;

@@ -3,7 +3,7 @@
 
 class CServerDriver;
 
-class CKinectStation final: public CEmulatedDevice
+class CKinectStation final : public CEmulatedDevice
 {
     CServerDriver *m_serverDriver;
 

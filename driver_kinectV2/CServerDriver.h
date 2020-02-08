@@ -16,6 +16,8 @@ class CServerDriver final : public vr::IServerTrackedDeviceProvider
     CEmulatedDevice *m_kinectStation;
     std::vector<CEmulatedDevice*> m_trackers;
 
+    bool m_hotkeyState;
+
     CServerDriver(const CServerDriver &that) = delete;
     CServerDriver& operator=(const CServerDriver &that) = delete;
 

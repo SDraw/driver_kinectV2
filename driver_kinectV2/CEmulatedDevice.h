@@ -30,6 +30,9 @@ protected:
 
     inline const std::string& GetSerial() const { return m_serial; }
 
+    bool IsConnected();
+    void SetConnected(bool f_state);
+
     void SetPosition(float f_x, float f_y, float f_z);
     void SetRotation(float f_x, float f_y, float f_z, float f_w);
 
@@ -39,6 +42,6 @@ protected:
     void Update();
 
     static void SetInterfaces(vr::IVRServerDriverHost *f_host, vr::CVRPropertyHelpers *f_properties);
-    
+
     friend class CServerDriver;
 };

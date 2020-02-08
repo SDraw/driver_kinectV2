@@ -26,6 +26,8 @@ class CKinectHandler final
     std::vector<CJointFilter*> m_jointFilters;
     JointData m_jointData[JI_Count];
 
+    std::atomic<bool> m_paused;
+
     CKinectHandler(const CKinectHandler &that) = delete;
     CKinectHandler& operator=(const CKinectHandler &that) = delete;
 
@@ -41,8 +43,10 @@ protected:
     inline const std::string& GetUniqueId() const { return m_uniqueId; }
     inline const JointData& GetJointData(size_t f_index) const { return m_jointData[f_index]; }
 
+    inline bool IsPaused() const { return m_paused; }
+    void SetPaused(bool f_state);
+
     void Update();
 
     friend class CServerDriver;
 };
-

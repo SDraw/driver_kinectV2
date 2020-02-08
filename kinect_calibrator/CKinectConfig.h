@@ -23,4 +23,3 @@ public:
     void SetRotation(const glm::quat &f_rot);
     inline const glm::quat& GetRotation() const { return m_rotation; }
 };
-

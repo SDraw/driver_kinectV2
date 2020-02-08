@@ -72,10 +72,10 @@ void CJointFilter::Update(const Joint &f_joint)
     }
 
     // Predict into the future to reduce latency
-    l_predictedPosition = l_filteredPosition+l_trend*m_prediction;
+    l_predictedPosition = l_filteredPosition + l_trend*m_prediction;
 
     // Check that we are not too far away from raw data
-    l_diff = l_predictedPosition-l_rawPosition;
+    l_diff = l_predictedPosition - l_rawPosition;
     l_length = glm::length(l_diff);
 
     if(l_length > m_maxDeviationRadius)

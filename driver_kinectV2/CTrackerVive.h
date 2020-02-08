@@ -1,7 +1,7 @@
 #pragma once
 #include "CEmulatedDevice.h"
 
-class CTrackerVive final: public CEmulatedDevice
+class CTrackerVive final : public CEmulatedDevice
 {
     CTrackerVive(const CTrackerVive &that) = delete;
     CTrackerVive& operator=(const CTrackerVive &that) = delete;
