@@ -1,5 +1,4 @@
-# SteamVR driver for Kinect Sensor 2.0
-Simple driver for Kinect Sensor 2.0 without external dependencies.
+SteamVR driver for Kinect for XBox One / Kinect 2 for Windows without external dependencies.
 
 # Installation
 * Install [Kinect for Windows Runtime 2.0](https://www.microsoft.com/en-us/download/details.aspx?id=44559).
@@ -12,7 +11,7 @@ Simple driver for Kinect Sensor 2.0 without external dependencies.
 
 # Calibration
 * Launch 'kinect_calibrator' from 'kinectV2/bin/win##' directory.
-* Allign base position using controllers:
+* Allign base position using controllers to match virtual trackers with your hip and legs:
   * Left controller's touchpad: up, down, left and right.
   * Right controller's touchpad: forward, backward, rotate left and rotate right.
 * Press application menu button or quit from SteamVR to save alligned base transformation.
@@ -27,4 +26,4 @@ Simple driver for Kinect Sensor 2.0 without external dependencies.
 ```
 git submodule update --init --depth=1
 ```
-* Open 'driver_kinectV2.sln' solution. Note: development is done in Visual Studio 2013.
+* Open 'driver_kinectV2.sln' solution from repository root.
