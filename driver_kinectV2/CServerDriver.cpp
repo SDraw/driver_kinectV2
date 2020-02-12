@@ -11,15 +11,6 @@
 #include "CDriverConfig.h"
 #include "Utils.h"
 
-enum TrackerBodyPart : size_t
-{
-    TBP_Hips = 0U,
-    TBP_LeftAnkle,
-    TBP_RightAnkle,
-
-    TBP_Count
-};
-
 const std::vector<std::string> g_MessageNames
 {
     "calibrate", "switch"
@@ -41,6 +32,7 @@ CServerDriver::CServerDriver()
     m_driverHost = nullptr;
     m_kinectHandler = nullptr;
     m_kinectStation = nullptr;
+    for(size_t i = 0U; i < TI_Count; i++) m_trackers[i] = nullptr;
     m_kinectThread = nullptr;
     m_kinectActive = false;
     m_hotkeyState = false;
@@ -65,11 +57,10 @@ vr::EVRInitError CServerDriver::Init(vr::IVRDriverContext *pDriverContext)
 
         // Add trackers
         CEmulatedDevice::SetInterfaces(m_driverHost, vr::VRProperties());
-        for(size_t i = 0U; i < TBP_Count; i++)
+        for(size_t i = 0U; i < TI_Count; i++)
         {
-            CTrackerVive *l_tracker = new CTrackerVive(i);
-            m_trackers.push_back(l_tracker);
-            m_driverHost->TrackedDeviceAdded(l_tracker->GetSerial().c_str(), vr::TrackedDeviceClass_GenericTracker, l_tracker);
+            m_trackers[i] = new CTrackerVive(i);
+            m_driverHost->TrackedDeviceAdded(m_trackers[i]->GetSerial().c_str(), vr::TrackedDeviceClass_GenericTracker, m_trackers[i]);
         }
 
         // Add fake station as command relay with Kinect model
@@ -81,10 +72,10 @@ vr::EVRInitError CServerDriver::Init(vr::IVRDriverContext *pDriverContext)
         const glm::quat &l_rotation = CDriverConfig::GetBaseRotation();
         m_kinectStation->SetPosition(l_position.x, l_position.y, l_position.z);
         m_kinectStation->SetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
-        for(auto l_tracker : m_trackers)
+        for(size_t i = 0U; i < TI_Count; i++)
         {
-            l_tracker->SetOffsetPosition(l_position.x, l_position.y, l_position.z);
-            l_tracker->SetOffsetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
+            m_trackers[i]->SetOffsetPosition(l_position.x, l_position.y, l_position.z);
+            m_trackers[i]->SetOffsetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
         }
 
         l_error = vr::VRInitError_None;
@@ -95,8 +86,11 @@ vr::EVRInitError CServerDriver::Init(vr::IVRDriverContext *pDriverContext)
 
 void CServerDriver::Cleanup()
 {
-    for(auto l_tracker : m_trackers) delete l_tracker;
-    m_trackers.clear();
+    for(size_t i = 0U; i < TI_Count; i++)
+    {
+        delete m_trackers[i];
+        m_trackers[i] = nullptr;
+    }
 
     delete m_kinectStation;
     m_kinectStation = nullptr;
@@ -131,7 +125,7 @@ void CServerDriver::RunFrame()
 {
     if(m_kinectLock.try_lock())
     {
-        for(size_t i = 0U; i < TBP_Count; i++)
+        for(size_t i = 0U; i < TI_Count; i++)
         {
             const JointData &l_jointData = m_kinectHandler->GetJointData(i);
             m_trackers[i]->SetPosition(-l_jointData.x, l_jointData.y, -l_jointData.z);
@@ -147,14 +141,18 @@ void CServerDriver::RunFrame()
         if(m_hotkeyState)
         {
             // Switch tracking
-            for(auto l_tracker : m_trackers) l_tracker->SetConnected(!l_tracker->IsConnected());
+            for(size_t i = 0U; i < TI_Count; i++)
+            {
+                bool l_connected = m_trackers[i]->IsConnected();
+                m_trackers[i]->SetConnected(!l_connected);
+            }
             m_kinectHandler->SetPaused(!m_kinectHandler->IsPaused());
         }
     }
 
     // Update devices
     m_kinectStation->Update();
-    for(auto l_tracker : m_trackers) l_tracker->Update();
+    for(size_t i = 0U; i < TI_Count; i++) m_trackers[i]->Update();
 }
 
 void CServerDriver::KinectProcess()
@@ -198,15 +196,19 @@ void CServerDriver::ProcessExternalMessage(const char *f_message)
 
                 m_kinectStation->SetPosition(l_position.x, l_position.y, l_position.z);
                 m_kinectStation->SetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
-                for(auto l_tracker : m_trackers)
+                for(size_t i = 0U; i < TI_Count; i++)
                 {
-                    l_tracker->SetOffsetPosition(l_position.x, l_position.y, l_position.z);
-                    l_tracker->SetOffsetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
+                    m_trackers[i]->SetOffsetPosition(l_position.x, l_position.y, l_position.z);
+                    m_trackers[i]->SetOffsetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
                 }
             } break;
             case MessageIndex::MI_Switch:
             {
-                for(auto l_tracker : m_trackers) l_tracker->SetConnected(!l_tracker->IsConnected());
+                for(size_t i = 0U; i < TI_Count; i++)
+                {
+                    bool l_connected = m_trackers[i]->IsConnected();
+                    m_trackers[i]->SetConnected(!l_connected);
+                }
                 m_kinectHandler->SetPaused(!m_kinectHandler->IsPaused());
             } break;
         }

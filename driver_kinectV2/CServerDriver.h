@@ -5,6 +5,15 @@ class CKinectHandler;
 
 class CServerDriver final : public vr::IServerTrackedDeviceProvider
 {
+    enum TrackerIndex : size_t
+    {
+        TI_Hips = 0U,
+        TI_LeftAnkle,
+        TI_RightAnkle,
+
+        TI_Count
+    };
+
     vr::IVRServerDriverHost* m_driverHost;
     static const char* const ms_interfaces[];
 
@@ -14,7 +23,7 @@ class CServerDriver final : public vr::IServerTrackedDeviceProvider
     std::atomic<bool> m_kinectActive;
 
     CEmulatedDevice *m_kinectStation;
-    std::vector<CEmulatedDevice*> m_trackers;
+    CEmulatedDevice *m_trackers[TI_Count];
 
     bool m_hotkeyState;
 

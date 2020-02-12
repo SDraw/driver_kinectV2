@@ -4,7 +4,7 @@
 #include "CJointFilter.h"
 
 size_t g_AssignedTrackerJoint[3U] = {
-    JointType_SpineBase,
+    JointType_SpineMid,
     JointType_AnkleLeft,
     JointType_AnkleRight,
 };
