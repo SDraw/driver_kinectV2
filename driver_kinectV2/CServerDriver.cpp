@@ -1,7 +1,5 @@
 #include "stdafx.h"
 
-//#define DKV2_NO_TRACKING
-
 #include "CServerDriver.h"
 #include "CEmulatedDevice.h"
 #include "CTrackerVive.h"
@@ -19,6 +17,14 @@ enum MessageIndex : size_t
 {
     MI_Calibrate = 0U,
     MI_Switch
+};
+
+enum HistoryIndex : size_t
+{
+    HI_Previous = 0U,
+    HI_Last,
+
+    HI_Count
 };
 
 const char* const CServerDriver::ms_interfaces[] = {
@@ -107,6 +113,9 @@ void CServerDriver::Cleanup()
     delete m_kinectHandler;
     m_kinectHandler = nullptr;
 
+    for(auto l_history : m_sensorHistory) delete l_history;
+    m_sensorHistory.clear();
+
     m_driverHost = nullptr;
     VR_CLEANUP_SERVER_DRIVER_CONTEXT();
 }
@@ -125,13 +134,44 @@ void CServerDriver::RunFrame()
 {
     if(m_kinectLock.try_lock())
     {
-        for(size_t i = 0U; i < TI_Count; i++)
+        const SensorData &l_sensorData = m_kinectHandler->GetSensorData();
+        if(m_sensorHistory.size() < HI_Count) m_sensorHistory.push_back(new SensorData(l_sensorData)); // Frame time is irrelevant
+        else
         {
-            const JointData &l_jointData = m_kinectHandler->GetJointData(i);
-            m_trackers[i]->SetPosition(-l_jointData.x, l_jointData.y, -l_jointData.z);
-            m_trackers[i]->SetRotation(-l_jointData.rx, l_jointData.ry, -l_jointData.rz, l_jointData.rw);
+            if(m_sensorHistory[HI_Last]->m_frameTime != l_sensorData.m_frameTime)
+            {
+                // New frame, move data
+                std::memcpy(m_sensorHistory[HI_Previous], m_sensorHistory[HI_Last], sizeof(SensorData));
+                std::memcpy(m_sensorHistory[HI_Last], &l_sensorData, sizeof(SensorData));
+            }
         }
         m_kinectLock.unlock();
+    }
+
+    // Smooth history data
+    if(m_sensorHistory.size() == HI_Count)
+    {
+        ULONGLONG l_diff = (GetTickCount64() - m_sensorHistory[HI_Last]->m_tick);
+        float l_smooth = static_cast<float>(l_diff) / 33.3333f;
+        glm::clamp(l_smooth, 0.f, 1.5f); // Extra clamp if new frame from Kinect will be slightly delayed
+
+        for(size_t i = 0U; i < TI_Count; i++)
+        {
+            const JointData &l_jointA = m_sensorHistory[HI_Previous]->m_joints[i];
+            const JointData &l_jointB = m_sensorHistory[HI_Last]->m_joints[i];
+
+            glm::vec3 l_jointPosA(-l_jointA.x, l_jointA.y, -l_jointA.z);
+            glm::vec3 l_jointPosB(-l_jointB.x, l_jointB.y, -l_jointB.z);
+
+            glm::quat l_jointRotA(l_jointA.rw, -l_jointA.rx, l_jointA.ry, -l_jointA.rz);
+            glm::quat l_jointRotB(l_jointB.rw, -l_jointB.rx, l_jointB.ry, -l_jointB.rz);
+
+            glm::vec3 l_linearPos = glm::mix(l_jointPosA, l_jointPosB, l_smooth);
+            glm::quat l_linearRot = glm::slerp(l_jointRotA, l_jointRotB, l_smooth);
+
+            m_trackers[i]->SetPosition(l_linearPos.x, l_linearPos.y, l_linearPos.z);
+            m_trackers[i]->SetRotation(l_linearRot.x, l_linearRot.y, l_linearRot.z, l_linearRot.w);
+        }
     }
 
     bool l_hotkeyState = ((GetAsyncKeyState(VK_CONTROL) & 0x8000) && (GetAsyncKeyState(0x54) & 0x8000)); // Ctrl+T

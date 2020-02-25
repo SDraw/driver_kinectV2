@@ -2,6 +2,7 @@
 
 class CEmulatedDevice;
 class CKinectHandler;
+struct SensorData;
 
 class CServerDriver final : public vr::IServerTrackedDeviceProvider
 {
@@ -21,6 +22,7 @@ class CServerDriver final : public vr::IServerTrackedDeviceProvider
     std::thread *m_kinectThread;
     std::mutex m_kinectLock;
     std::atomic<bool> m_kinectActive;
+    std::vector<SensorData*> m_sensorHistory;
 
     CEmulatedDevice *m_kinectStation;
     CEmulatedDevice *m_trackers[TI_Count];

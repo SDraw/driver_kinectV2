@@ -13,6 +13,12 @@ struct JointData
     float x, y, z;
     float rx, ry, rz, rw;
 };
+struct SensorData
+{
+    JointData m_joints[JI_Count];
+    TIMESPAN m_frameTime;
+    ULONGLONG m_tick;
+};
 
 class CJointFilter;
 
@@ -21,10 +27,8 @@ class CKinectHandler final
     IKinectSensor *m_kinectSensor;
     IBodyFrameReader *m_bodyFrameReader;
 
-    std::string m_uniqueId;
-
     std::vector<CJointFilter*> m_jointFilters;
-    JointData m_jointData[JI_Count];
+    SensorData m_sensorData;
 
     std::atomic<bool> m_paused;
 
@@ -40,8 +44,7 @@ protected:
     bool Initialize();
     void Terminate();
 
-    inline const std::string& GetUniqueId() const { return m_uniqueId; }
-    inline const JointData& GetJointData(size_t f_index) const { return m_jointData[f_index]; }
+    inline const SensorData& GetSensorData() const { return m_sensorData; }
 
     inline bool IsPaused() const { return m_paused; }
     void SetPaused(bool f_state);

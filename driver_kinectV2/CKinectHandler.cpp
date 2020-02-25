@@ -4,7 +4,7 @@
 #include "CJointFilter.h"
 
 size_t g_AssignedTrackerJoint[3U] = {
-    JointType_SpineMid,
+    JointType_SpineBase,
     JointType_AnkleLeft,
     JointType_AnkleRight,
 };
@@ -13,11 +13,8 @@ CKinectHandler::CKinectHandler()
 {
     m_kinectSensor = nullptr;
     m_bodyFrameReader = nullptr;
-    for(size_t i = 0U; i < JI_Count; i++)
-    {
-        m_jointData[i] = { 0.f };
-        m_jointFilters.push_back(new CJointFilter());
-    }
+    m_sensorData = { { { 0.f } }, 0, 0U };
+    for(size_t i = 0U; i < JI_Count; i++) m_jointFilters.push_back(new CJointFilter());
     m_paused = false;
 }
 CKinectHandler::~CKinectHandler()
@@ -32,19 +29,7 @@ bool CKinectHandler::Initialize()
     {
         if(GetDefaultKinectSensor(&m_kinectSensor) >= S_OK)
         {
-            wchar_t l_wideString[32U];
-            if(m_kinectSensor->get_UniqueKinectId(32U, l_wideString) >= S_OK)
-            {
-                char l_string[32U];
-                size_t l_written = 0U;
-                wcstombs_s(&l_written, l_string, l_wideString, 32U);
-                m_uniqueId.assign(l_string);
-                m_uniqueId.resize(l_written);
-            }
-            else m_uniqueId.assign("Kinect_V2");
-
-            IBodyFrameSource* l_bodyFrameSource = nullptr;
-
+            IBodyFrameSource *l_bodyFrameSource = nullptr;
             if(m_kinectSensor->Open() >= S_OK)
             {
                 if(m_kinectSensor->get_BodyFrameSource(&l_bodyFrameSource) >= S_OK)
@@ -101,6 +86,14 @@ void CKinectHandler::Update()
         IBodyFrame* l_bodyFrame = nullptr;
         if(m_bodyFrameReader->AcquireLatestFrame(&l_bodyFrame) >= S_OK)
         {
+            TIMESPAN l_timeSpan = 0;
+            l_bodyFrame->get_RelativeTime(&l_timeSpan);
+            if(l_timeSpan != m_sensorData.m_frameTime)
+            {
+                m_sensorData.m_frameTime = l_timeSpan;
+                m_sensorData.m_tick = GetTickCount64();
+            }
+
             IBody *l_bodies[BODY_COUNT] = { nullptr };
             if(l_bodyFrame->GetAndRefreshBodyData(BODY_COUNT, l_bodies) >= S_OK) // Only first visible body
             {
@@ -121,18 +114,19 @@ void CKinectHandler::Update()
                                     {
                                         m_jointFilters[k]->Update(l_joints[g_AssignedTrackerJoint[k]]);
                                         const glm::vec3& l_position = m_jointFilters[k]->GetFiltered();
-                                        m_jointData[k].x = l_position.x;
-                                        m_jointData[k].y = l_position.y;
-                                        m_jointData[k].z = l_position.z;
+                                        JointData &l_jointData = m_sensorData.m_joints[k];
+                                        l_jointData.x = l_position.x;
+                                        l_jointData.y = l_position.y;
+                                        l_jointData.z = l_position.z;
 
                                         const Vector4 &l_kinectRotation = l_jointOrientations[g_AssignedTrackerJoint[k]].Orientation;
                                         glm::quat l_newRotation(l_kinectRotation.w, l_kinectRotation.x, l_kinectRotation.y, l_kinectRotation.z);
-                                        glm::quat l_oldRotation(m_jointData[k].rw, m_jointData[k].rx, m_jointData[k].ry, m_jointData[k].rz);
+                                        glm::quat l_oldRotation(l_jointData.rw, l_jointData.rx, l_jointData.ry, l_jointData.rz);
                                         glm::quat l_smoothedRotation = glm::slerp(l_oldRotation, l_newRotation, 0.7f);
-                                        m_jointData[k].rx = l_smoothedRotation.x;
-                                        m_jointData[k].ry = l_smoothedRotation.y;
-                                        m_jointData[k].rz = l_smoothedRotation.z;
-                                        m_jointData[k].rw = l_smoothedRotation.w;
+                                        l_jointData.rx = l_smoothedRotation.x;
+                                        l_jointData.ry = l_smoothedRotation.y;
+                                        l_jointData.rz = l_smoothedRotation.z;
+                                        l_jointData.rw = l_smoothedRotation.w;
                                     }
                                 }
 
