@@ -113,16 +113,16 @@ void CKinectHandler::Update()
                                     for(size_t k = 0U; k < JI_Count; k++)
                                     {
                                         m_jointFilters[k]->Update(l_joints[g_AssignedTrackerJoint[k]]);
-                                        const glm::vec3& l_position = m_jointFilters[k]->GetFiltered();
+                                        const glm::vec3 &l_position = m_jointFilters[k]->GetFiltered();
                                         JointData &l_jointData = m_sensorData.m_joints[k];
                                         l_jointData.x = l_position.x;
                                         l_jointData.y = l_position.y;
                                         l_jointData.z = l_position.z;
 
                                         const Vector4 &l_kinectRotation = l_jointOrientations[g_AssignedTrackerJoint[k]].Orientation;
-                                        glm::quat l_newRotation(l_kinectRotation.w, l_kinectRotation.x, l_kinectRotation.y, l_kinectRotation.z);
-                                        glm::quat l_oldRotation(l_jointData.rw, l_jointData.rx, l_jointData.ry, l_jointData.rz);
-                                        glm::quat l_smoothedRotation = glm::slerp(l_oldRotation, l_newRotation, 0.7f);
+                                        const glm::quat l_newRotation(l_kinectRotation.w, l_kinectRotation.x, l_kinectRotation.y, l_kinectRotation.z);
+                                        const glm::quat l_oldRotation(l_jointData.rw, l_jointData.rx, l_jointData.ry, l_jointData.rz);
+                                        const glm::quat l_smoothedRotation = glm::slerp(l_oldRotation, l_newRotation, 0.7f);
                                         l_jointData.rx = l_smoothedRotation.x;
                                         l_jointData.ry = l_smoothedRotation.y;
                                         l_jointData.rz = l_smoothedRotation.z;

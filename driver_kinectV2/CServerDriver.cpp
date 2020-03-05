@@ -151,30 +151,30 @@ void CServerDriver::RunFrame()
     // Smooth history data
     if(m_sensorHistory.size() == HI_Count)
     {
-        ULONGLONG l_diff = (GetTickCount64() - m_sensorHistory[HI_Last]->m_tick);
+        const ULONGLONG l_diff = (GetTickCount64() - m_sensorHistory[HI_Last]->m_tick);
         float l_smooth = static_cast<float>(l_diff) / 33.3333f;
-        glm::clamp(l_smooth, 0.f, 1.5f); // Extra clamp if new frame from Kinect will be slightly delayed
+        l_smooth = glm::clamp(l_smooth, 0.f, 1.5f); // Extra clamp if new frame from Kinect will be slightly delayed
 
         for(size_t i = 0U; i < TI_Count; i++)
         {
             const JointData &l_jointA = m_sensorHistory[HI_Previous]->m_joints[i];
             const JointData &l_jointB = m_sensorHistory[HI_Last]->m_joints[i];
 
-            glm::vec3 l_jointPosA(-l_jointA.x, l_jointA.y, -l_jointA.z);
-            glm::vec3 l_jointPosB(-l_jointB.x, l_jointB.y, -l_jointB.z);
+            const glm::vec3 l_jointPosA(-l_jointA.x, l_jointA.y, -l_jointA.z);
+            const glm::vec3 l_jointPosB(-l_jointB.x, l_jointB.y, -l_jointB.z);
 
-            glm::quat l_jointRotA(l_jointA.rw, -l_jointA.rx, l_jointA.ry, -l_jointA.rz);
-            glm::quat l_jointRotB(l_jointB.rw, -l_jointB.rx, l_jointB.ry, -l_jointB.rz);
+            const glm::quat l_jointRotA(l_jointA.rw, -l_jointA.rx, l_jointA.ry, -l_jointA.rz);
+            const glm::quat l_jointRotB(l_jointB.rw, -l_jointB.rx, l_jointB.ry, -l_jointB.rz);
 
-            glm::vec3 l_linearPos = glm::mix(l_jointPosA, l_jointPosB, l_smooth);
-            glm::quat l_linearRot = glm::slerp(l_jointRotA, l_jointRotB, l_smooth);
+            const glm::vec3 l_linearPos = glm::mix(l_jointPosA, l_jointPosB, l_smooth);
+            const glm::quat l_linearRot = glm::slerp(l_jointRotA, l_jointRotB, l_smooth);
 
             m_trackers[i]->SetPosition(l_linearPos.x, l_linearPos.y, l_linearPos.z);
             m_trackers[i]->SetRotation(l_linearRot.x, l_linearRot.y, l_linearRot.z, l_linearRot.w);
         }
     }
 
-    bool l_hotkeyState = ((GetAsyncKeyState(VK_CONTROL) & 0x8000) && (GetAsyncKeyState(0x54) & 0x8000)); // Ctrl+T
+    const bool l_hotkeyState = ((GetAsyncKeyState(VK_CONTROL) & 0x8000) && (GetAsyncKeyState(0x54) & 0x8000)); // Ctrl+T
     if(m_hotkeyState != l_hotkeyState)
     {
         m_hotkeyState = l_hotkeyState;
@@ -183,7 +183,7 @@ void CServerDriver::RunFrame()
             // Switch tracking
             for(size_t i = 0U; i < TI_Count; i++)
             {
-                bool l_connected = m_trackers[i]->IsConnected();
+                const bool l_connected = m_trackers[i]->IsConnected();
                 m_trackers[i]->SetConnected(!l_connected);
             }
             m_kinectHandler->SetPaused(!m_kinectHandler->IsPaused());
@@ -197,9 +197,9 @@ void CServerDriver::RunFrame()
 
 void CServerDriver::KinectProcess()
 {
-    std::chrono::milliseconds l_threadDelay(33U);
+    const std::chrono::milliseconds l_threadDelay(33U);
 
-    bool l_initialized = m_kinectHandler->Initialize();
+    const bool l_initialized = m_kinectHandler->Initialize();
     while(m_kinectActive)
     {
         if(l_initialized)
@@ -246,7 +246,7 @@ void CServerDriver::ProcessExternalMessage(const char *f_message)
             {
                 for(size_t i = 0U; i < TI_Count; i++)
                 {
-                    bool l_connected = m_trackers[i]->IsConnected();
+                    const bool l_connected = m_trackers[i]->IsConnected();
                     m_trackers[i]->SetConnected(!l_connected);
                 }
                 m_kinectHandler->SetPaused(!m_kinectHandler->IsPaused());

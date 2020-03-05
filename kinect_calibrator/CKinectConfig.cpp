@@ -41,13 +41,13 @@ void CKinectConfig::Load()
 {
     if(m_document->load_file(m_path.c_str()))
     {
-        pugi::xml_node l_root = m_document->child("settings");
+        const pugi::xml_node l_root = m_document->child("settings");
         if(l_root)
         {
             for(pugi::xml_node l_node = l_root.child("setting"); l_node; l_node = l_node.next_sibling("setting"))
             {
-                pugi::xml_attribute l_attribName = l_node.attribute("name");
-                pugi::xml_attribute l_attribValue = l_node.attribute("value");
+                const pugi::xml_attribute l_attribName = l_node.attribute("name");
+                const pugi::xml_attribute l_attribValue = l_node.attribute("value");
                 if(l_attribName && l_attribValue)
                 {
                     switch(ReadEnumVector(l_attribName.as_string(), g_SettingNames))
@@ -107,12 +107,12 @@ void CKinectConfig::Load()
 
 void CKinectConfig::Save()
 {
-    pugi::xml_node l_root = m_document->child("settings");
+    const pugi::xml_node l_root = m_document->child("settings");
     if(l_root)
     {
         for(pugi::xml_node l_node = l_root.child("setting"); l_node; l_node = l_node.next_sibling("setting"))
         {
-            pugi::xml_attribute l_attribName = l_node.attribute("name");
+            const pugi::xml_attribute l_attribName = l_node.attribute("name");
             pugi::xml_attribute l_attribValue = l_node.attribute("value");
             if(l_attribName && l_attribValue)
             {

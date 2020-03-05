@@ -176,8 +176,8 @@ bool CKinectMonitor::DoPulse()
                         vr::VRControllerState_t l_state;
                         m_vrSystem->GetControllerState(m_event.trackedDeviceIndex, &l_state, sizeof(vr::VRControllerState_t));
 
-                        float l_theta = atan2f(l_state.rAxis[0U].y, l_state.rAxis[0U].x);
-                        float l_absTheta = abs(l_theta);
+                        const float l_theta = atan2f(l_state.rAxis[0U].y, l_state.rAxis[0U].x);
+                        const float l_absTheta = abs(l_theta);
 
                         TouchpadQuadrant l_quad = TQ_Unknown;
                         if((l_absTheta >= 0.f) && (l_absTheta <= g_Pi*0.25f)) l_quad = TQ_Right;

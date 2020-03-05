@@ -31,7 +31,7 @@ void CJointFilter::Update(const Joint &f_joint)
         m_maxDeviationRadius = 0.05f;
     }
 
-    glm::vec3 l_rawPosition(f_joint.Position.X, f_joint.Position.Y, f_joint.Position.Z);
+    const glm::vec3 l_rawPosition(f_joint.Position.X, f_joint.Position.Y, f_joint.Position.Z);
     glm::vec3 l_filteredPosition;
     glm::vec3 l_predictedPosition;
     glm::vec3 l_diff;
