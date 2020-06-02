@@ -1,3 +1,5 @@
+[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/I2I0XK1A)
+
 SteamVR driver for Kinect for XBox One / Kinect 2 for Windows.
 
 # Usage benefits
