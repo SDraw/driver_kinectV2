@@ -1,4 +1,8 @@
-SteamVR driver for Kinect for XBox One / Kinect 2 for Windows without external dependencies.
+SteamVR driver for Kinect for XBox One / Kinect 2 for Windows.
+
+# Usage benefits
+* No additional dependencies for SteamVR ([OpenVR InputEmulator](https://github.com/matzman666/OpenVR-InputEmulator) and others).
+* [Linear smoothing of movement](https://twitter.com/SDraw_/status/1231987403721756672) for bypassing Kinect's 30 frames per seconds capture. 
 
 # Installation
 * Install [Kinect for Windows Runtime 2.0](https://www.microsoft.com/en-us/download/details.aspx?id=44559).
@@ -18,6 +22,7 @@ SteamVR driver for Kinect for XBox One / Kinect 2 for Windows without external d
 
 # Usage
 * Press **Ctrl-T** to disable/enable tracking.
+  * Alternative way: send debug message 'switch' to fake bases tation device.
 
 # Building
 * Install [Kinect for Windows SDK 2.0](https://www.microsoft.com/en-us/download/details.aspx?id=44561).
