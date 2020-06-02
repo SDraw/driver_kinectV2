@@ -22,7 +22,7 @@ SteamVR driver for Kinect for XBox One / Kinect 2 for Windows.
 
 # Usage
 * Press **Ctrl-T** to disable/enable tracking.
-  * Alternative way: send debug message 'switch' to fake bases tation device.
+  * Alternative way: send debug message 'switch' to fake base station device.
 
 # Building
 * Install [Kinect for Windows SDK 2.0](https://www.microsoft.com/en-us/download/details.aspx?id=44561).
