@@ -27,7 +27,8 @@ enum HistoryIndex : size_t
     HI_Count
 };
 
-const char* const CServerDriver::ms_interfaces[] = {
+const char* const CServerDriver::ms_interfaces[]
+{
     vr::ITrackedDeviceServerDriver_Version,
     vr::IServerTrackedDeviceProvider_Version,
     nullptr

@@ -75,8 +75,8 @@ bool CKinectMonitor::Initialize()
 
             m_kinectConfig = new CKinectConfig("\\..\\..\\resources\\settings.xml");
             m_kinectConfig->Load();
-            m_basePosition = m_kinectConfig->GetPosition();
-            m_baseRotation = m_kinectConfig->GetRotation();
+            m_basePosition = m_kinectConfig->GetBasePosition();
+            m_baseRotation = m_kinectConfig->GetBaseRotation();
 
             m_vrNotifications->CreateNotification(m_overlay, 0U, vr::EVRNotificationType_Persistent, g_NotificationText, vr::EVRNotificationStyle_Application, nullptr, &m_notification);
 
@@ -224,8 +224,8 @@ bool CKinectMonitor::DoPulse()
                             }
                         }
 
-                        m_kinectConfig->SetPosition(m_basePosition);
-                        m_kinectConfig->SetRotation(m_baseRotation);
+                        m_kinectConfig->SetBasePosition(m_basePosition);
+                        m_kinectConfig->SetBaseRotation(m_baseRotation);
                         SendCalibration();
                     } break;
 

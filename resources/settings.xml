@@ -1,5 +1,4 @@
 <settings>
-    <setting name="enabled" value="true"/>
     <setting name="basePosition" value="0.0 0.0 0.0"/>
     <setting name="baseRotation" value="0.0 0.0 0.0 1.0"/>
 </settings>

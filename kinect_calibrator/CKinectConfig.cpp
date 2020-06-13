@@ -28,8 +28,8 @@ CKinectConfig::CKinectConfig(const char *f_path)
     m_path.assign(m_path.substr(0U, m_path.find_last_of("\\/")));
     m_path.append(f_path);
 
-    m_position = glm::vec3(0.f);
-    m_rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
+    m_basePosition = glm::vec3(0.f);
+    m_baseRotation = glm::quat(1.f, 0.f, 0.f, 0.f);
 }
 CKinectConfig::~CKinectConfig()
 {
@@ -55,12 +55,12 @@ void CKinectConfig::Load()
                         case SettingIndex::SI_BasePosition:
                         {
                             std::stringstream l_stream(l_attribValue.as_string("0.0 0.0 0.0"));
-                            l_stream >> m_position.x >> m_position.y >> m_position.z;
+                            l_stream >> m_basePosition.x >> m_basePosition.y >> m_basePosition.z;
                         } break;
                         case SettingIndex::SI_BaseRotation:
                         {
                             std::stringstream l_stream(l_attribValue.as_string("0.0 0.0 0.0 1.0"));
-                            l_stream >> m_rotation.x >> m_rotation.y >> m_rotation.z >> m_rotation.w;
+                            l_stream >> m_baseRotation.x >> m_baseRotation.y >> m_baseRotation.z >> m_baseRotation.w;
                         } break;
                     }
                 }
@@ -123,7 +123,7 @@ void CKinectConfig::Save()
                         std::string l_pos;
                         for(int i = 0; i < 3; i++)
                         {
-                            l_pos.append(std::to_string(m_position[i]));
+                            l_pos.append(std::to_string(m_basePosition[i]));
                             if(i < 2) l_pos.push_back(' ');
                         }
                         l_attribValue.set_value(l_pos.c_str());
@@ -133,7 +133,7 @@ void CKinectConfig::Save()
                         std::string l_rot;
                         for(int i = 0; i < 4; i++)
                         {
-                            l_rot.append(std::to_string(m_rotation[i]));
+                            l_rot.append(std::to_string(m_baseRotation[i]));
                             if(i < 3) l_rot.push_back(' ');
                         }
                         l_attribValue.set_value(l_rot.c_str());
@@ -146,12 +146,12 @@ void CKinectConfig::Save()
     if(!m_document->save_file(m_path.c_str())) std::cout << "[!] Unable to save file 'resources/settings.xml'." << std::endl;
 }
 
-void CKinectConfig::SetPosition(const glm::vec3 &f_pos)
+void CKinectConfig::SetBasePosition(const glm::vec3 &f_pos)
 {
-    std::memcpy(&m_position, &f_pos, sizeof(glm::vec3));
+    std::memcpy(&m_basePosition, &f_pos, sizeof(glm::vec3));
 }
 
-void CKinectConfig::SetRotation(const glm::quat &f_rot)
+void CKinectConfig::SetBaseRotation(const glm::quat &f_rot)
 {
-    std::memcpy(&m_rotation, &f_rot, sizeof(glm::quat));
+    std::memcpy(&m_baseRotation, &f_rot, sizeof(glm::quat));
 }

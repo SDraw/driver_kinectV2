@@ -5,8 +5,8 @@ class CKinectConfig final
     pugi::xml_document *m_document;
     std::string m_path;
 
-    glm::vec3 m_position;
-    glm::quat m_rotation;
+    glm::vec3 m_basePosition;
+    glm::quat m_baseRotation;
 
     CKinectConfig(const CKinectConfig &that) = delete;
     CKinectConfig& operator=(const CKinectConfig &that) = delete;
@@ -17,9 +17,9 @@ public:
     void Load();
     void Save();
 
-    void SetPosition(const glm::vec3 &f_pos);
-    inline const glm::vec3& GetPosition() const { return m_position; }
+    void SetBasePosition(const glm::vec3 &f_pos);
+    inline const glm::vec3& GetBasePosition() const { return m_basePosition; }
 
-    void SetRotation(const glm::quat &f_rot);
-    inline const glm::quat& GetRotation() const { return m_rotation; }
+    void SetBaseRotation(const glm::quat &f_rot);
+    inline const glm::quat& GetBaseRotation() const { return m_baseRotation; }
 };
