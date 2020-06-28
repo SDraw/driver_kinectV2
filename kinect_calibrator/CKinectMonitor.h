@@ -39,6 +39,7 @@ class CKinectMonitor final
     CKinectConfig *m_kinectConfig;
     glm::vec3 m_basePosition;
     glm::quat m_baseRotation;
+    bool m_triggerPressed;
 
     CKinectMonitor(const CKinectMonitor &that) = delete;
     CKinectMonitor& operator=(const CKinectMonitor &that) = delete;
