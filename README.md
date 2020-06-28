@@ -19,7 +19,7 @@ SteamVR driver for Kinect for XBox One / Kinect 2 for Windows.
 * Launch 'kinect_calibrator' from 'kinectV2/bin/win##' directory.
 * Allign base position using controllers to match virtual trackers with your hip and legs:
   * Left controller's touchpad: rotate left, rotate right, rotate up, rotate down. Press grip to reset rotation.
-  * Right controller's touchpad: move right, move left, move up, move down. Press grip to reset position
+  * Right controller's touchpad: move right, move left, move up, move down. Press grip to reset position.
     * If trigger is pressed: move forward, move backward.
 * Press application menu button or quit from SteamVR to save alligned base transformation.
 
