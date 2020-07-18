@@ -30,8 +30,8 @@ enum HistoryIndex : size_t
 const char* const CServerDriver::ms_interfaces[]
 {
     vr::ITrackedDeviceServerDriver_Version,
-    vr::IServerTrackedDeviceProvider_Version,
-    nullptr
+        vr::IServerTrackedDeviceProvider_Version,
+        nullptr
 };
 
 CServerDriver::CServerDriver()
@@ -50,45 +50,38 @@ CServerDriver::~CServerDriver()
 
 vr::EVRInitError CServerDriver::Init(vr::IVRDriverContext *pDriverContext)
 {
-    vr::EVRInitError l_error = vr::VRInitError_Driver_NotLoaded;
-
     CDriverConfig::Load();
-    if(CDriverConfig::IsEnabled())
+    VR_INIT_SERVER_DRIVER_CONTEXT(pDriverContext);
+    m_driverHost = vr::VRServerDriverHost();
+
+    m_kinectHandler = new CKinectHandler();
+    m_kinectActive = true;
+    m_kinectThread = new std::thread(&CServerDriver::KinectProcess, this);
+
+    // Add trackers
+    CEmulatedDevice::SetInterfaces(m_driverHost, vr::VRProperties());
+    for(size_t i = 0U; i < TI_Count; i++)
     {
-        VR_INIT_SERVER_DRIVER_CONTEXT(pDriverContext);
-        m_driverHost = vr::VRServerDriverHost();
-
-        m_kinectHandler = new CKinectHandler();
-        m_kinectActive = true;
-        m_kinectThread = new std::thread(&CServerDriver::KinectProcess, this);
-
-        // Add trackers
-        CEmulatedDevice::SetInterfaces(m_driverHost, vr::VRProperties());
-        for(size_t i = 0U; i < TI_Count; i++)
-        {
-            m_trackers[i] = new CTrackerVive(i);
-            m_driverHost->TrackedDeviceAdded(m_trackers[i]->GetSerial().c_str(), vr::TrackedDeviceClass_GenericTracker, m_trackers[i]);
-        }
-
-        // Add fake station as command relay with Kinect model
-        m_kinectStation = new CKinectStation(this);
-        m_driverHost->TrackedDeviceAdded(m_kinectStation->GetSerial().c_str(), vr::TrackedDeviceClass_TrackingReference, m_kinectStation);
-
-        // Coordinates offset
-        const glm::vec3 &l_position = CDriverConfig::GetBasePosition();
-        const glm::quat &l_rotation = CDriverConfig::GetBaseRotation();
-        m_kinectStation->SetPosition(l_position.x, l_position.y, l_position.z);
-        m_kinectStation->SetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
-        for(size_t i = 0U; i < TI_Count; i++)
-        {
-            m_trackers[i]->SetOffsetPosition(l_position.x, l_position.y, l_position.z);
-            m_trackers[i]->SetOffsetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
-        }
-
-        l_error = vr::VRInitError_None;
+        m_trackers[i] = new CTrackerVive(i);
+        m_driverHost->TrackedDeviceAdded(m_trackers[i]->GetSerial().c_str(), vr::TrackedDeviceClass_GenericTracker, m_trackers[i]);
     }
 
-    return l_error;
+    // Add fake station as command relay with Kinect model
+    m_kinectStation = new CKinectStation(this);
+    m_driverHost->TrackedDeviceAdded(m_kinectStation->GetSerial().c_str(), vr::TrackedDeviceClass_TrackingReference, m_kinectStation);
+
+    // Coordinates offset
+    const glm::vec3 &l_position = CDriverConfig::GetBasePosition();
+    const glm::quat &l_rotation = CDriverConfig::GetBaseRotation();
+    m_kinectStation->SetPosition(l_position.x, l_position.y, l_position.z);
+    m_kinectStation->SetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
+    for(size_t i = 0U; i < TI_Count; i++)
+    {
+        m_trackers[i]->SetOffsetPosition(l_position.x, l_position.y, l_position.z);
+        m_trackers[i]->SetOffsetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
+    }
+
+    return vr::VRInitError_None;
 }
 
 void CServerDriver::Cleanup()

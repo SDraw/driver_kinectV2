@@ -6,7 +6,6 @@
 
 extern char g_ModulePath[];
 
-bool CDriverConfig::ms_enabled = false;
 glm::vec3 CDriverConfig::ms_basePosition(0.f);
 glm::quat CDriverConfig::ms_baseRotation(1.f, 0.f, 0.f, 0.f);
 
@@ -17,8 +16,7 @@ const std::vector<std::string> g_SettingNames
 };
 enum SettingIndex : size_t
 {
-    SI_Enabled = 0U,
-    SI_BasePosition,
+    SI_BasePosition = 0U,
     SI_BaseRotation
 };
 
@@ -42,9 +40,6 @@ void CDriverConfig::Load()
                 {
                     switch(ReadEnumVector(l_attribName.as_string(), g_SettingNames))
                     {
-                        case SettingIndex::SI_Enabled:
-                            ms_enabled = l_attribValue.as_bool(true);
-                            break;
                         case SettingIndex::SI_BasePosition:
                         {
                             std::stringstream l_stream(l_attribValue.as_string("0.0 0.0 0.0"));
