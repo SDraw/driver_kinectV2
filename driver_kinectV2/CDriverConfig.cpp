@@ -11,7 +11,6 @@ glm::quat CDriverConfig::ms_baseRotation(1.f, 0.f, 0.f, 0.f);
 
 const std::vector<std::string> g_SettingNames
 {
-    "enabled",
     "basePosition", "baseRotation"
 };
 enum SettingIndex : size_t
