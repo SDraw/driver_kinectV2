@@ -2,13 +2,10 @@
 
 #include "CEmulatedDevice.h"
 
-vr::IVRServerDriverHost *CEmulatedDevice::ms_driverHost = nullptr;
-vr::CVRPropertyHelpers *CEmulatedDevice::ms_vrProperties = nullptr;
-
 CEmulatedDevice::CEmulatedDevice()
 {
     m_pose = { 0 };
-    m_pose.poseTimeOffset = -0.016;
+    m_pose.poseTimeOffset = -0.011;
     m_pose.qWorldFromDriverRotation.w = 1.0;
     m_pose.qWorldFromDriverRotation.x = .0;
     m_pose.qWorldFromDriverRotation.y = .0;
@@ -40,7 +37,7 @@ vr::EVRInitError CEmulatedDevice::Activate(uint32_t unObjectId)
     if(m_trackedDevice == vr::k_unTrackedDeviceIndexInvalid)
     {
         m_trackedDevice = unObjectId;
-        m_propertyContainer = ms_vrProperties->TrackedDeviceToPropertyContainer(m_trackedDevice);
+        m_propertyContainer = vr::VRProperties()->TrackedDeviceToPropertyContainer(m_trackedDevice);
 
         SetupProperties();
 
@@ -62,7 +59,7 @@ void CEmulatedDevice::Deactivate()
 void* CEmulatedDevice::GetComponent(const char* pchComponentNameAndVersion)
 {
     void *l_result = nullptr;
-    if(!strcmp(pchComponentNameAndVersion, vr::ITrackedDeviceServerDriver_Version)) l_result = this;
+    if(!strcmp(pchComponentNameAndVersion, vr::ITrackedDeviceServerDriver_Version)) l_result = dynamic_cast<vr::ITrackedDeviceServerDriver*>(this);
     return l_result;
 }
 
@@ -111,16 +108,10 @@ void CEmulatedDevice::SetOffsetRotation(float f_x, float f_y, float f_z, float f
     m_pose.qWorldFromDriverRotation.w = f_w;
 }
 
-void CEmulatedDevice::Update()
+void CEmulatedDevice::RunFrame()
 {
     if(m_trackedDevice != vr::k_unTrackedDeviceIndexInvalid)
     {
-        ms_driverHost->TrackedDevicePoseUpdated(m_trackedDevice, m_pose, sizeof(vr::DriverPose_t));
+        vr::VRServerDriverHost()->TrackedDevicePoseUpdated(m_trackedDevice, m_pose, sizeof(vr::DriverPose_t));
     }
-}
-
-void CEmulatedDevice::SetInterfaces(vr::IVRServerDriverHost *f_host, vr::CVRPropertyHelpers *f_properties)
-{
-    ms_driverHost = f_host;
-    ms_vrProperties = f_properties;
 }

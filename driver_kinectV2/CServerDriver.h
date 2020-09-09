@@ -15,7 +15,6 @@ class CServerDriver final : public vr::IServerTrackedDeviceProvider
         TI_Count
     };
 
-    vr::IVRServerDriverHost* m_driverHost;
     static const char* const ms_interfaces[];
 
     CKinectHandler *m_kinectHandler;

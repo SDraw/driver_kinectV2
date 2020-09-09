@@ -26,9 +26,6 @@ class CKinectMonitor final
     bool m_active;
 
     vr::IVRSystem *m_vrSystem;
-    vr::IVROverlay *m_vrOverlay;
-    vr::IVRNotifications *m_vrNotifications;
-    vr::IVRDebug *m_vrDebug;
     vr::VROverlayHandle_t m_overlay;
     vr::VRNotificationId m_notification;
     vr::TrackedDeviceIndex_t m_kinectDevice;

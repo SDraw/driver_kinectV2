@@ -36,7 +36,6 @@ const char* const CServerDriver::ms_interfaces[]
 
 CServerDriver::CServerDriver()
 {
-    m_driverHost = nullptr;
     m_kinectHandler = nullptr;
     m_kinectStation = nullptr;
     for(size_t i = 0U; i < TI_Count; i++) m_trackers[i] = nullptr;
@@ -52,23 +51,21 @@ vr::EVRInitError CServerDriver::Init(vr::IVRDriverContext *pDriverContext)
 {
     CDriverConfig::Load();
     VR_INIT_SERVER_DRIVER_CONTEXT(pDriverContext);
-    m_driverHost = vr::VRServerDriverHost();
 
     m_kinectHandler = new CKinectHandler();
     m_kinectActive = true;
     m_kinectThread = new std::thread(&CServerDriver::KinectProcess, this);
 
     // Add trackers
-    CEmulatedDevice::SetInterfaces(m_driverHost, vr::VRProperties());
     for(size_t i = 0U; i < TI_Count; i++)
     {
         m_trackers[i] = new CTrackerVive(i);
-        m_driverHost->TrackedDeviceAdded(m_trackers[i]->GetSerial().c_str(), vr::TrackedDeviceClass_GenericTracker, m_trackers[i]);
+        vr::VRServerDriverHost()->TrackedDeviceAdded(m_trackers[i]->GetSerial().c_str(), vr::TrackedDeviceClass_GenericTracker, m_trackers[i]);
     }
 
     // Add fake station as command relay with Kinect model
     m_kinectStation = new CKinectStation(this);
-    m_driverHost->TrackedDeviceAdded(m_kinectStation->GetSerial().c_str(), vr::TrackedDeviceClass_TrackingReference, m_kinectStation);
+    vr::VRServerDriverHost()->TrackedDeviceAdded(m_kinectStation->GetSerial().c_str(), vr::TrackedDeviceClass_TrackingReference, m_kinectStation);
 
     // Coordinates offset
     const glm::vec3 &l_position = CDriverConfig::GetBasePosition();
@@ -95,8 +92,6 @@ void CServerDriver::Cleanup()
     delete m_kinectStation;
     m_kinectStation = nullptr;
 
-    CEmulatedDevice::SetInterfaces(nullptr, nullptr);
-
     if(m_kinectThread)
     {
         m_kinectActive = false;
@@ -110,7 +105,6 @@ void CServerDriver::Cleanup()
     for(auto l_history : m_sensorHistory) delete l_history;
     m_sensorHistory.clear();
 
-    m_driverHost = nullptr;
     VR_CLEANUP_SERVER_DRIVER_CONTEXT();
 }
 
@@ -146,7 +140,7 @@ void CServerDriver::RunFrame()
     if(m_sensorHistory.size() == HI_Count)
     {
         const ULONGLONG l_diff = (GetTickCount64() - m_sensorHistory[HI_Last]->m_tick);
-        float l_smooth = static_cast<float>(l_diff) / 33.3333f;
+        float l_smooth = static_cast<float>(l_diff) / 33.333333f;
         l_smooth = glm::clamp(l_smooth, 0.f, 1.5f); // Extra clamp if new frame from Kinect will be slightly delayed
 
         for(size_t i = 0U; i < TI_Count; i++)
@@ -185,8 +179,8 @@ void CServerDriver::RunFrame()
     }
 
     // Update devices
-    m_kinectStation->Update();
-    for(size_t i = 0U; i < TI_Count; i++) m_trackers[i]->Update();
+    m_kinectStation->RunFrame();
+    for(size_t i = 0U; i < TI_Count; i++) m_trackers[i]->RunFrame();
 }
 
 void CServerDriver::KinectProcess()

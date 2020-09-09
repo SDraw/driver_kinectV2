@@ -28,9 +28,6 @@ CKinectMonitor::CKinectMonitor()
 {
     m_active = false;
     m_vrSystem = nullptr;
-    m_vrOverlay = nullptr;
-    m_vrNotifications = nullptr;
-    m_vrDebug = nullptr;
     m_overlay = vr::k_ulOverlayHandleInvalid;
     m_notification = 0U;
     m_kinectDevice = vr::k_unTrackedDeviceIndexInvalid;
@@ -54,11 +51,7 @@ bool CKinectMonitor::Initialize()
         m_vrSystem = vr::VR_Init(&l_initError, vr::VRApplication_Overlay);
         if(l_initError == vr::VRInitError_None)
         {
-            m_vrOverlay = vr::VROverlay();
-            m_vrNotifications = vr::VRNotifications();
-            m_vrDebug = vr::VRDebug();
-
-            m_vrOverlay->CreateOverlay("monitor.kinect.main", "Kinect Calibrator", &m_overlay);
+            vr::VROverlay()->CreateOverlay("monitor.kinect.main", "Kinect Calibrator", &m_overlay);
 
             for(uint32_t i = 0U; i < vr::k_unMaxTrackedDeviceCount; i++)
             {
@@ -79,7 +72,7 @@ bool CKinectMonitor::Initialize()
             m_basePosition = m_kinectConfig->GetBasePosition();
             m_baseRotation = m_kinectConfig->GetBaseRotation();
 
-            m_vrNotifications->CreateNotification(m_overlay, 0U, vr::EVRNotificationType_Persistent, g_NotificationText, vr::EVRNotificationStyle_Application, nullptr, &m_notification);
+            vr::VRNotifications()->CreateNotification(m_overlay, 0U, vr::EVRNotificationType_Persistent, g_NotificationText, vr::EVRNotificationStyle_Application, nullptr, &m_notification);
 
             if(m_kinectDevice == vr::k_unTrackedDeviceIndexInvalid) std::cout << "[!] Unable to find Kinect base station device. Calibration will be performed without real-time results." << std::endl;
             if(m_leftHand == vr::k_unTrackedDeviceIndexInvalid) std::cout << "[!] Right controller isn't active." << std::endl;
@@ -104,19 +97,17 @@ void CKinectMonitor::Terminate()
     {
         if(m_notification != 0U)
         {
-            m_vrNotifications->RemoveNotification(m_notification);
+            vr::VRNotifications()->RemoveNotification(m_notification);
             m_notification = 0U;
         }
         if(m_overlay != vr::k_ulOverlayHandleInvalid)
         {
-            m_vrOverlay->DestroyOverlay(m_overlay);
+            vr::VROverlay()->DestroyOverlay(m_overlay);
             m_overlay = vr::k_ulOverlayHandleInvalid;
         }
 
+        vr::VR_Shutdown();
         m_vrSystem = nullptr;
-        m_vrOverlay = nullptr;
-        m_vrNotifications = nullptr;
-        m_vrDebug = nullptr;
 
         m_kinectDevice = vr::k_unTrackedDeviceIndexInvalid;
         m_rightHand = vr::k_unTrackedDeviceIndexInvalid;
@@ -144,7 +135,7 @@ void CKinectMonitor::SendCalibration()
         }
 
         char l_response[32U];
-        m_vrDebug->DriverDebugRequest(m_kinectDevice, l_data.c_str(), l_response, 32U);
+        vr::VRDebug()->DriverDebugRequest(m_kinectDevice, l_data.c_str(), l_response, 32U);
     }
 }
 
@@ -195,7 +186,6 @@ bool CKinectMonitor::DoPulse()
                         {
                             switch(l_quad)
                             {
-
                                 case TQ_Right:
                                     m_baseRotation = glm::rotate(m_baseRotation, g_Pi / 180.f, g_AxisY);
                                     break;
