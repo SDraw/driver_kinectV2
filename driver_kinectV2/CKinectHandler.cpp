@@ -3,11 +3,11 @@
 #include "CKinectHandler.h"
 #include "CJointFilter.h"
 
-size_t g_AssignedTrackerJoint[3U]
+const size_t g_AssignedTrackerJoint[3U]
 {
     JointType_SpineBase,
-    JointType_AnkleLeft,
-    JointType_AnkleRight,
+        JointType_AnkleLeft,
+        JointType_AnkleRight,
 };
 
 CKinectHandler::CKinectHandler()
@@ -18,6 +18,7 @@ CKinectHandler::CKinectHandler()
     for(size_t i = 0U; i < JI_Count; i++) m_jointFilters.push_back(new CJointFilter());
     m_paused = false;
 }
+
 CKinectHandler::~CKinectHandler()
 {
     Cleanup();
@@ -73,6 +74,16 @@ void CKinectHandler::Cleanup()
     }
 
     m_paused = false;
+}
+
+const SensorData& CKinectHandler::GetSensorData() const
+{
+    return m_sensorData;
+}
+
+bool CKinectHandler::IsPaused() const
+{
+    return m_paused;
 }
 
 void CKinectHandler::SetPaused(bool f_state)

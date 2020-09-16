@@ -39,6 +39,7 @@ CKinectMonitor::CKinectMonitor()
     m_baseRotation = glm::quat(1.f, 0.f, 0.f, 0.f);
     m_triggerPressed = false;
 }
+
 CKinectMonitor::~CKinectMonitor()
 {
 }
@@ -74,20 +75,9 @@ bool CKinectMonitor::Initialize()
 
             vr::VRNotifications()->CreateNotification(m_overlay, 0U, vr::EVRNotificationType_Persistent, g_NotificationText, vr::EVRNotificationStyle_Application, nullptr, &m_notification);
 
-            if(m_kinectDevice == vr::k_unTrackedDeviceIndexInvalid) std::cout << "[!] Unable to find Kinect base station device. Calibration will be performed without real-time results." << std::endl;
-            if(m_leftHand == vr::k_unTrackedDeviceIndexInvalid) std::cout << "[!] Right controller isn't active." << std::endl;
-            if(m_rightHand == vr::k_unTrackedDeviceIndexInvalid) std::cout << "[!] Left controller isn't active." << std::endl;
-            std::cout << "[i] Follow instructions in notification." << std::endl;
-            std::cout << "[i] Calibrated data will be saved after application menu button press or SteamVR shutdown." << std::endl;
-
             m_active = true;
         }
-        else
-        {
-            std::cout << "[!] Unable to launch. Reason: " << vr::VR_GetVRInitErrorAsEnglishDescription(l_initError) << std::endl;
-
-            m_vrSystem = nullptr;
-        }
+        else m_vrSystem = nullptr;
     }
     return (m_vrSystem != nullptr);
 }
@@ -118,27 +108,6 @@ void CKinectMonitor::Terminate()
     }
 }
 
-void CKinectMonitor::SendCalibration()
-{
-    if(m_kinectDevice != vr::k_unTrackedDeviceIndexInvalid)
-    {
-        std::string l_data("calibrate");
-        for(int i = 0; i < 3; i++)
-        {
-            l_data.push_back(' ');
-            l_data.append(std::to_string(m_basePosition[i]));
-        }
-        for(int i = 0; i < 4; i++)
-        {
-            l_data.push_back(' ');
-            l_data.append(std::to_string(m_baseRotation[i]));
-        }
-
-        char l_response[32U];
-        vr::VRDebug()->DriverDebugRequest(m_kinectDevice, l_data.c_str(), l_response, 32U);
-    }
-}
-
 bool CKinectMonitor::DoPulse()
 {
     bool l_update = false;
@@ -149,16 +118,8 @@ bool CKinectMonitor::DoPulse()
         {
             case vr::VREvent_TrackedDeviceDeactivated:
             {
-                if(m_leftHand == m_event.trackedDeviceIndex)
-                {
-                    m_leftHand = vr::k_unTrackedDeviceIndexInvalid;
-                    std::cout << "[!] Left controller is deactivated." << std::endl;
-                }
-                else if(m_rightHand == m_event.trackedDeviceIndex)
-                {
-                    m_rightHand = vr::k_unTrackedDeviceIndexInvalid;
-                    std::cout << "[!] Right controller is deactivated." << std::endl;
-                }
+                if(m_leftHand == m_event.trackedDeviceIndex) m_leftHand = vr::k_unTrackedDeviceIndexInvalid;
+                if(m_rightHand == m_event.trackedDeviceIndex) m_rightHand = vr::k_unTrackedDeviceIndexInvalid;
             } break;
 
             case vr::VREvent_ButtonPress:
@@ -202,8 +163,9 @@ bool CKinectMonitor::DoPulse()
 
                             l_update = true;
                         }
+
                         // Right hand - position
-                        else if(m_event.trackedDeviceIndex == m_rightHand)
+                        if(m_event.trackedDeviceIndex == m_rightHand)
                         {
                             switch(l_quad)
                             {
@@ -270,18 +232,31 @@ bool CKinectMonitor::DoPulse()
         SendCalibration();
     }
 
-    if(m_leftHand == vr::k_unTrackedDeviceIndexInvalid)
-    {
-        m_leftHand = m_vrSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
-        if(m_leftHand != vr::k_unTrackedDeviceIndexInvalid) std::cout << "[i] Left controller is activated." << std::endl;
-    }
-    if(m_rightHand == vr::k_unTrackedDeviceIndexInvalid)
-    {
-        m_rightHand = m_vrSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
-        if(m_rightHand != vr::k_unTrackedDeviceIndexInvalid) std::cout << "[i] Right controller is activated." << std::endl;
-    }
+    if(m_leftHand == vr::k_unTrackedDeviceIndexInvalid) m_leftHand = m_vrSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
+    if(m_rightHand == vr::k_unTrackedDeviceIndexInvalid) m_rightHand = m_vrSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
 
     std::this_thread::sleep_for(g_ThreadDelay);
     if(!m_active) m_kinectConfig->Save();
     return m_active;
+}
+
+void CKinectMonitor::SendCalibration()
+{
+    if(m_kinectDevice != vr::k_unTrackedDeviceIndexInvalid)
+    {
+        std::string l_data("calibrate");
+        for(int i = 0; i < 3; i++)
+        {
+            l_data.push_back(' ');
+            l_data.append(std::to_string(m_basePosition[i]));
+        }
+        for(int i = 0; i < 4; i++)
+        {
+            l_data.push_back(' ');
+            l_data.append(std::to_string(m_baseRotation[i]));
+        }
+
+        char l_response[32U];
+        vr::VRDebug()->DriverDebugRequest(m_kinectDevice, l_data.c_str(), l_response, 32U);
+    }
 }

@@ -6,9 +6,6 @@
 
 extern char g_ModulePath[];
 
-glm::vec3 CDriverConfig::ms_basePosition(0.f);
-glm::quat CDriverConfig::ms_baseRotation(1.f, 0.f, 0.f, 0.f);
-
 const std::vector<std::string> g_SettingNames
 {
     "basePosition", "baseRotation"
@@ -18,6 +15,9 @@ enum SettingIndex : size_t
     SI_BasePosition = 0U,
     SI_BaseRotation
 };
+
+glm::vec3 CDriverConfig::ms_basePosition(0.f);
+glm::quat CDriverConfig::ms_baseRotation(1.f, 0.f, 0.f, 0.f);
 
 void CDriverConfig::Load()
 {
@@ -55,4 +55,14 @@ void CDriverConfig::Load()
         }
     }
     delete l_settings;
+}
+
+const glm::vec3& CDriverConfig::GetBasePosition()
+{
+    return ms_basePosition;
+}
+
+const glm::quat& CDriverConfig::GetBaseRotation()
+{
+    return ms_baseRotation;
 }

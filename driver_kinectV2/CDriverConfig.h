@@ -7,6 +7,6 @@ class CDriverConfig final
 public:
     static void Load();
 
-    static inline const glm::vec3& GetBasePosition() { return ms_basePosition; }
-    static inline const glm::quat& GetBaseRotation() { return ms_baseRotation; }
+    static const glm::vec3& GetBasePosition();
+    static const glm::quat& GetBaseRotation();
 };

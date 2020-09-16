@@ -14,8 +14,14 @@ CJointFilter::CJointFilter()
     m_history.m_trend = glm::vec3(0.f);
     m_history.m_frameCount = 0U;
 }
+
 CJointFilter::~CJointFilter()
 {
+}
+
+const glm::vec3& CJointFilter::GetFiltered() const
+{
+    return m_filteredJoint;
 }
 
 void CJointFilter::Update(const Joint &f_joint)

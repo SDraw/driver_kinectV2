@@ -4,25 +4,6 @@ class CKinectConfig;
 
 class CKinectMonitor final
 {
-    enum OverlayIndex : size_t
-    {
-        OI_Base = 0U,
-        OI_SwitchCalibration,
-        OI_SwitchTrackers,
-
-        OI_CalibrationUp,
-        OI_CalibrationDown,
-        OI_CalibrationLeft,
-        OI_CalibrationRight,
-        OI_CalibrationForward,
-        OI_CalibrationBackward,
-        OI_CalibrationRotateLeft,
-        OI_CalibrationRotateRight,
-        OI_CalibrationEnd, // Near user to calibrate properly
-
-        OI_Count
-    };
-
     bool m_active;
 
     vr::IVRSystem *m_vrSystem;

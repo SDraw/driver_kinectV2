@@ -143,7 +143,7 @@
       <AdditionalIncludeDirectories>../vendor/openvr/headers;../vendor/glm;../vendor/pugixml/src;../shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
@@ -166,7 +166,7 @@
       <AdditionalIncludeDirectories>../vendor/openvr/headers;../vendor/glm;../vendor/pugixml/src;../shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>

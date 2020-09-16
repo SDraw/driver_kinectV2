@@ -6,13 +6,11 @@
 
 const std::vector<std::string> g_SettingNames
 {
-    "enabled",
     "basePosition", "baseRotation"
 };
 enum SettingIndex : size_t
 {
-    SI_Enabled,
-    SI_BasePosition,
+    SI_BasePosition = 0U,
     SI_BaseRotation,
 
     SI_Count
@@ -20,8 +18,6 @@ enum SettingIndex : size_t
 
 CKinectConfig::CKinectConfig(const char *f_path)
 {
-    m_document = new pugi::xml_document();
-
     char l_buffer[MAX_PATH];
     GetModuleFileNameA(NULL, l_buffer, MAX_PATH);
     m_path.assign(l_buffer);
@@ -31,17 +27,17 @@ CKinectConfig::CKinectConfig(const char *f_path)
     m_basePosition = glm::vec3(0.f);
     m_baseRotation = glm::quat(1.f, 0.f, 0.f, 0.f);
 }
+
 CKinectConfig::~CKinectConfig()
 {
-    delete m_document;
 }
-
 
 void CKinectConfig::Load()
 {
-    if(m_document->load_file(m_path.c_str()))
+    pugi::xml_document *l_document = new pugi::xml_document();
+    if(l_document->load_file(m_path.c_str()))
     {
-        const pugi::xml_node l_root = m_document->child("settings");
+        const pugi::xml_node l_root = l_document->child("settings");
         if(l_root)
         {
             for(pugi::xml_node l_node = l_root.child("setting"); l_node; l_node = l_node.next_sibling("setting"))
@@ -67,83 +63,51 @@ void CKinectConfig::Load()
             }
         }
     }
-    else
-    {
-        std::cout << "[!] Unable to load existing 'resources/settings.xml', creating new." << std::endl;
-
-        pugi::xml_node l_root = m_document->append_child("settings");
-        if(l_root)
-        {
-            for(size_t i = 0U; i < SI_Count; i++)
-            {
-                pugi::xml_node l_settingNode = l_root.append_child("setting");
-                if(l_settingNode)
-                {
-                    pugi::xml_attribute l_nameAttrib = l_settingNode.append_attribute("name");
-                    if(l_nameAttrib) l_nameAttrib.set_value(g_SettingNames[i].c_str());
-                    pugi::xml_attribute l_valueAttrib = l_settingNode.append_attribute("value");
-                    if(l_valueAttrib)
-                    {
-                        switch(i)
-                        {
-                            case SI_Enabled:
-                                l_valueAttrib.set_value(true);
-                                break;
-                            case SI_BasePosition:
-                                l_valueAttrib.set_value("0.0 0.0 0.0");
-                                break;
-                            case SI_BaseRotation:
-                                l_valueAttrib.set_value("0.0 0.0 0.0 1.0");
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-
-        m_document->save_file(m_path.c_str());
-    }
+    delete l_document;
 }
 
 void CKinectConfig::Save()
 {
-    const pugi::xml_node l_root = m_document->child("settings");
+    pugi::xml_document *l_document = new pugi::xml_document();
+    pugi::xml_node l_root = l_document->append_child("settings");
     if(l_root)
     {
-        for(pugi::xml_node l_node = l_root.child("setting"); l_node; l_node = l_node.next_sibling("setting"))
+        for(size_t i = 0U; i < SI_Count; i++)
         {
-            const pugi::xml_attribute l_attribName = l_node.attribute("name");
-            pugi::xml_attribute l_attribValue = l_node.attribute("value");
-            if(l_attribName && l_attribValue)
+            pugi::xml_node l_settingNode = l_root.append_child("setting");
+            pugi::xml_attribute l_nameAttrib = l_settingNode.append_attribute("name");
+            pugi::xml_attribute l_valueAttrib = l_settingNode.append_attribute("value");
+            if(l_nameAttrib && l_valueAttrib)
             {
-                switch(ReadEnumVector(l_attribName.as_string(), g_SettingNames))
+                l_nameAttrib.set_value(g_SettingNames[i].c_str());
+                switch(i)
                 {
                     case SettingIndex::SI_BasePosition:
                     {
                         std::string l_pos;
-                        for(int i = 0; i < 3; i++)
+                        for(int j = 0; j < 3; j++)
                         {
-                            l_pos.append(std::to_string(m_basePosition[i]));
-                            if(i < 2) l_pos.push_back(' ');
+                            l_pos.append(std::to_string(m_basePosition[j]));
+                            if(j < 2) l_pos.push_back(' ');
                         }
-                        l_attribValue.set_value(l_pos.c_str());
+                        l_valueAttrib.set_value(l_pos.c_str());
                     } break;
                     case SettingIndex::SI_BaseRotation:
                     {
                         std::string l_rot;
-                        for(int i = 0; i < 4; i++)
+                        for(int j = 0; j < 4; j++)
                         {
-                            l_rot.append(std::to_string(m_baseRotation[i]));
-                            if(i < 3) l_rot.push_back(' ');
+                            l_rot.append(std::to_string(m_baseRotation[j]));
+                            if(j < 3) l_rot.push_back(' ');
                         }
-                        l_attribValue.set_value(l_rot.c_str());
+                        l_valueAttrib.set_value(l_rot.c_str());
                     } break;
                 }
             }
         }
     }
-
-    if(!m_document->save_file(m_path.c_str())) std::cout << "[!] Unable to save file 'resources/settings.xml'." << std::endl;
+    l_document->save_file(m_path.c_str());
+    delete l_document;
 }
 
 void CKinectConfig::SetBasePosition(const glm::vec3 &f_pos)
@@ -151,7 +115,17 @@ void CKinectConfig::SetBasePosition(const glm::vec3 &f_pos)
     std::memcpy(&m_basePosition, &f_pos, sizeof(glm::vec3));
 }
 
+const glm::vec3& CKinectConfig::GetBasePosition() const
+{
+    return m_basePosition;
+}
+
 void CKinectConfig::SetBaseRotation(const glm::quat &f_rot)
 {
     std::memcpy(&m_baseRotation, &f_rot, sizeof(glm::quat));
+}
+
+const glm::quat& CKinectConfig::GetBaseRotation() const
+{
+    return m_baseRotation;
 }

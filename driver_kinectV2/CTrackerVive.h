@@ -1,4 +1,5 @@
 #pragma once
+
 #include "CEmulatedDevice.h"
 
 class CTrackerVive final : public CEmulatedDevice
@@ -7,9 +8,7 @@ class CTrackerVive final : public CEmulatedDevice
     CTrackerVive& operator=(const CTrackerVive &that) = delete;
 
     void SetupProperties() override;
-protected:
+public:
     explicit CTrackerVive(size_t f_index);
     ~CTrackerVive();
-
-    friend class CServerDriver;
 };

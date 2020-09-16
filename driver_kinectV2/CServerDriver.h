@@ -36,11 +36,11 @@ class CServerDriver final : public vr::IServerTrackedDeviceProvider
     // vr::IServerTrackedDeviceProvider
     vr::EVRInitError Init(vr::IVRDriverContext *pDriverContext);
     void Cleanup();
-    void EnterStandby() {};
     const char* const* GetInterfaceVersions();
-    void LeaveStandby() {};
-    bool ShouldBlockStandbyMode();
     void RunFrame();
+    bool ShouldBlockStandbyMode();
+    void EnterStandby();
+    void LeaveStandby();
 public:
     CServerDriver();
     ~CServerDriver();

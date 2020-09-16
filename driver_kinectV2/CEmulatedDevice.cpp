@@ -23,13 +23,15 @@ CEmulatedDevice::CEmulatedDevice()
     m_pose.result = vr::TrackingResult_Uninitialized;
     m_pose.deviceIsConnected = false;
 
-    m_propertyContainer = vr::k_ulInvalidPropertyContainer;
+    m_propertyHandle = vr::k_ulInvalidPropertyContainer;
     m_trackedDevice = vr::k_unTrackedDeviceIndexInvalid;
 }
+
 CEmulatedDevice::~CEmulatedDevice()
 {
 }
 
+// vr::ITrackedDeviceServerDriver
 vr::EVRInitError CEmulatedDevice::Activate(uint32_t unObjectId)
 {
     vr::EVRInitError l_error = vr::VRInitError_Driver_Failed;
@@ -37,7 +39,7 @@ vr::EVRInitError CEmulatedDevice::Activate(uint32_t unObjectId)
     if(m_trackedDevice == vr::k_unTrackedDeviceIndexInvalid)
     {
         m_trackedDevice = unObjectId;
-        m_propertyContainer = vr::VRProperties()->TrackedDeviceToPropertyContainer(m_trackedDevice);
+        m_propertyHandle = vr::VRProperties()->TrackedDeviceToPropertyContainer(m_trackedDevice);
 
         SetupProperties();
 
@@ -56,6 +58,10 @@ void CEmulatedDevice::Deactivate()
     m_trackedDevice = vr::k_unTrackedDeviceIndexInvalid;
 }
 
+void CEmulatedDevice::EnterStandby()
+{
+}
+
 void* CEmulatedDevice::GetComponent(const char* pchComponentNameAndVersion)
 {
     void *l_result = nullptr;
@@ -63,12 +69,22 @@ void* CEmulatedDevice::GetComponent(const char* pchComponentNameAndVersion)
     return l_result;
 }
 
+void CEmulatedDevice::DebugRequest(const char* pchRequest, char* pchResponseBuffer, uint32_t unResponseBufferSize)
+{
+}
+
 vr::DriverPose_t CEmulatedDevice::GetPose()
 {
     return m_pose;
 }
 
-bool CEmulatedDevice::IsConnected()
+// CEmulatedDevice
+const std::string& CEmulatedDevice::GetSerial() const
+{
+    return m_serial;
+}
+
+bool CEmulatedDevice::IsConnected() const
 {
     return m_pose.deviceIsConnected;
 }
@@ -106,6 +122,10 @@ void CEmulatedDevice::SetOffsetRotation(float f_x, float f_y, float f_z, float f
     m_pose.qWorldFromDriverRotation.y = f_y;
     m_pose.qWorldFromDriverRotation.z = f_z;
     m_pose.qWorldFromDriverRotation.w = f_w;
+}
+
+void CEmulatedDevice::SetupProperties()
+{
 }
 
 void CEmulatedDevice::RunFrame()

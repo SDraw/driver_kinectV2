@@ -2,7 +2,6 @@
 
 class CKinectConfig final
 {
-    pugi::xml_document *m_document;
     std::string m_path;
 
     glm::vec3 m_basePosition;
@@ -18,8 +17,8 @@ public:
     void Save();
 
     void SetBasePosition(const glm::vec3 &f_pos);
-    inline const glm::vec3& GetBasePosition() const { return m_basePosition; }
+    const glm::vec3& GetBasePosition() const;
 
     void SetBaseRotation(const glm::quat &f_rot);
-    inline const glm::quat& GetBaseRotation() const { return m_baseRotation; }
+    const glm::quat& GetBaseRotation() const;
 };

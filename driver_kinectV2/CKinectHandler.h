@@ -37,19 +37,17 @@ class CKinectHandler final
 
     void Cleanup();
 
-protected:
+public:
     CKinectHandler();
     ~CKinectHandler();
 
     bool Initialize();
     void Terminate();
 
-    inline const SensorData& GetSensorData() const { return m_sensorData; }
+    const SensorData& GetSensorData() const;
 
-    inline bool IsPaused() const { return m_paused; }
+    bool IsPaused() const;
     void SetPaused(bool f_state);
 
     void Update();
-
-    friend class CServerDriver;
 };

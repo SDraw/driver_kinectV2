@@ -43,10 +43,12 @@ CServerDriver::CServerDriver()
     m_kinectActive = false;
     m_hotkeyState = false;
 }
+
 CServerDriver::~CServerDriver()
 {
 }
 
+// vr::IServerTrackedDeviceProvider
 vr::EVRInitError CServerDriver::Init(vr::IVRDriverContext *pDriverContext)
 {
     CDriverConfig::Load();
@@ -111,11 +113,6 @@ void CServerDriver::Cleanup()
 const char* const* CServerDriver::GetInterfaceVersions()
 {
     return ms_interfaces;
-}
-
-bool CServerDriver::ShouldBlockStandbyMode()
-{
-    return false;
 }
 
 void CServerDriver::RunFrame()
@@ -183,6 +180,20 @@ void CServerDriver::RunFrame()
     for(size_t i = 0U; i < TI_Count; i++) m_trackers[i]->RunFrame();
 }
 
+bool CServerDriver::ShouldBlockStandbyMode()
+{
+    return false;
+}
+
+void CServerDriver::EnterStandby()
+{
+}
+
+void CServerDriver::LeaveStandby()
+{
+}
+
+// CServerDriver
 void CServerDriver::KinectProcess()
 {
     const std::chrono::milliseconds l_threadDelay(33U);
