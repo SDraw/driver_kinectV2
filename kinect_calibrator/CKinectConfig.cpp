@@ -6,14 +6,27 @@
 
 const std::vector<std::string> g_SettingNames
 {
-    "basePosition", "baseRotation"
+    "basePosition", "baseRotation", "trackers"
 };
 enum SettingIndex : size_t
 {
     SI_BasePosition = 0U,
     SI_BaseRotation,
+    SI_Trackers,
 
     SI_Count
+};
+
+const std::vector<std::string> g_BoneNames
+{
+    "SpineBase", "SpineMid", "Neck", "Head",
+    "ShoulderLeft", "ElbowLeft", "WristLeft", "HandLeft",
+    "ShoulderRight", "ElbowRight", "WristRight", "HandRight",
+    "HipLeft", "KneeLeft", "AnkleLeft", "FootLeft",
+    "HipRight", "KneeRight", "AnkleRight", "FootRight",
+    "SpineShoulder",
+    "HandTipLeft", "ThumbLeft",
+    "HandTipRight", "ThumbRight"
 };
 
 CKinectConfig::CKinectConfig(const char *f_path)
@@ -58,12 +71,34 @@ void CKinectConfig::Load()
                             std::stringstream l_stream(l_attribValue.as_string("0.0 0.0 0.0 1.0"));
                             l_stream >> m_baseRotation.x >> m_baseRotation.y >> m_baseRotation.z >> m_baseRotation.w;
                         } break;
+                        case SettingIndex::SI_Trackers:
+                        {
+                            for(pugi::xml_node l_trackerNode = l_node.child("tracker"); l_trackerNode; l_trackerNode = l_trackerNode.next_sibling("tracker"))
+                            {
+                                const pugi::xml_attribute l_indexAttribute = l_trackerNode.attribute("bone");
+                                if(l_indexAttribute)
+                                {
+                                    size_t l_boneIndex = ReadEnumVector(l_indexAttribute.as_string(), g_BoneNames);
+                                    if(l_boneIndex != std::numeric_limits<size_t>::max()) m_boneIndexes.push_back(l_boneIndex);
+                                }
+                            }
+                        } break;
                     }
                 }
             }
         }
     }
     delete l_document;
+
+    // Remove duplicated bones
+    std::sort(m_boneIndexes.begin(), m_boneIndexes.end());
+    m_boneIndexes.erase(std::unique(m_boneIndexes.begin(), m_boneIndexes.end()), m_boneIndexes.end());
+    if(m_boneIndexes.empty())
+    {
+        m_boneIndexes.push_back(0U); // SpineBase
+        m_boneIndexes.push_back(14U); // AnkleLeft
+        m_boneIndexes.push_back(18U); // AnkleRight
+    }
 }
 
 void CKinectConfig::Save()
@@ -75,33 +110,49 @@ void CKinectConfig::Save()
         for(size_t i = 0U; i < SI_Count; i++)
         {
             pugi::xml_node l_settingNode = l_root.append_child("setting");
-            pugi::xml_attribute l_nameAttrib = l_settingNode.append_attribute("name");
-            pugi::xml_attribute l_valueAttrib = l_settingNode.append_attribute("value");
-            if(l_nameAttrib && l_valueAttrib)
+            if(l_settingNode)
             {
-                l_nameAttrib.set_value(g_SettingNames[i].c_str());
-                switch(i)
+                pugi::xml_attribute l_nameAttrib = l_settingNode.append_attribute("name");
+                pugi::xml_attribute l_valueAttrib = l_settingNode.append_attribute("value");
+                if(l_nameAttrib && l_valueAttrib)
                 {
-                    case SettingIndex::SI_BasePosition:
+                    l_nameAttrib.set_value(g_SettingNames[i].c_str());
+                    switch(i)
                     {
-                        std::string l_pos;
-                        for(int j = 0; j < 3; j++)
+                        case SettingIndex::SI_BasePosition:
                         {
-                            l_pos.append(std::to_string(m_basePosition[j]));
-                            if(j < 2) l_pos.push_back(' ');
-                        }
-                        l_valueAttrib.set_value(l_pos.c_str());
-                    } break;
-                    case SettingIndex::SI_BaseRotation:
-                    {
-                        std::string l_rot;
-                        for(int j = 0; j < 4; j++)
+                            std::string l_pos;
+                            for(int j = 0; j < 3; j++)
+                            {
+                                l_pos.append(std::to_string(m_basePosition[j]));
+                                if(j < 2) l_pos.push_back(' ');
+                            }
+                            l_valueAttrib.set_value(l_pos.c_str());
+                        } break;
+                        case SettingIndex::SI_BaseRotation:
                         {
-                            l_rot.append(std::to_string(m_baseRotation[j]));
-                            if(j < 3) l_rot.push_back(' ');
-                        }
-                        l_valueAttrib.set_value(l_rot.c_str());
-                    } break;
+                            std::string l_rot;
+                            for(int j = 0; j < 4; j++)
+                            {
+                                l_rot.append(std::to_string(m_baseRotation[j]));
+                                if(j < 3) l_rot.push_back(' ');
+                            }
+                            l_valueAttrib.set_value(l_rot.c_str());
+                        } break;
+                        case SettingIndex::SI_Trackers:
+                        {
+                            l_valueAttrib.set_value("");
+                            for(auto l_index : m_boneIndexes)
+                            {
+                                pugi::xml_node l_trackerNode = l_settingNode.append_child("tracker");
+                                if(l_trackerNode)
+                                {
+                                    pugi::xml_attribute l_boneAttribute = l_trackerNode.append_attribute("bone");
+                                    if(l_boneAttribute) l_boneAttribute.set_value(g_BoneNames[l_index].c_str());
+                                }
+                            }
+                        } break;
+                    }
                 }
             }
         }

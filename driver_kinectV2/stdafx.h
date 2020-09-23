@@ -13,6 +13,7 @@
 #include <atomic>
 #include <chrono>
 #include <limits>
+#include <algorithm>
 
 #include "openvr_driver.h"
 

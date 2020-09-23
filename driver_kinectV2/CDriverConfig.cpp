@@ -8,16 +8,30 @@ extern char g_ModulePath[];
 
 const std::vector<std::string> g_SettingNames
 {
-    "basePosition", "baseRotation"
+    "basePosition", "baseRotation", "trackers"
 };
 enum SettingIndex : size_t
 {
     SI_BasePosition = 0U,
-    SI_BaseRotation
+    SI_BaseRotation,
+    SI_Trackers
+};
+
+const std::vector<std::string> g_BoneNames
+{
+    "SpineBase", "SpineMid", "Neck", "Head",
+    "ShoulderLeft", "ElbowLeft", "WristLeft", "HandLeft",
+    "ShoulderRight", "ElbowRight", "WristRight", "HandRight",
+    "HipLeft", "KneeLeft", "AnkleLeft", "FootLeft",
+    "HipRight", "KneeRight", "AnkleRight", "FootRight",
+    "SpineShoulder",
+    "HandTipLeft", "ThumbLeft",
+    "HandTipRight", "ThumbRight"
 };
 
 glm::vec3 CDriverConfig::ms_basePosition(0.f);
 glm::quat CDriverConfig::ms_baseRotation(1.f, 0.f, 0.f, 0.f);
+std::vector<size_t> CDriverConfig::ms_boneIndexes;
 
 void CDriverConfig::Load()
 {
@@ -44,17 +58,36 @@ void CDriverConfig::Load()
                             std::stringstream l_stream(l_attribValue.as_string("0.0 0.0 0.0"));
                             l_stream >> ms_basePosition.x >> ms_basePosition.y >> ms_basePosition.z;
                         } break;
+
                         case SettingIndex::SI_BaseRotation:
                         {
                             std::stringstream l_stream(l_attribValue.as_string("0.0 0.0 0.0 1.0"));
                             l_stream >> ms_baseRotation.x >> ms_baseRotation.y >> ms_baseRotation.z >> ms_baseRotation.w;
+                        } break;
+
+                        case SettingIndex::SI_Trackers:
+                        {
+                            for(pugi::xml_node l_trackerNode = l_node.child("tracker"); l_trackerNode; l_trackerNode = l_trackerNode.next_sibling("tracker"))
+                            {
+                                const pugi::xml_attribute l_indexAttribute = l_trackerNode.attribute("bone");
+                                if(l_indexAttribute)
+                                {
+                                    size_t l_boneIndex = ReadEnumVector(l_indexAttribute.as_string(), g_BoneNames);
+                                    if(l_boneIndex != std::numeric_limits<size_t>::max()) ms_boneIndexes.push_back(l_boneIndex);
+                                }
+                            }
                         } break;
                     }
                 }
             }
         }
     }
+
     delete l_settings;
+
+    // Remove duplicated bones
+    std::sort(ms_boneIndexes.begin(), ms_boneIndexes.end());
+    ms_boneIndexes.erase(std::unique(ms_boneIndexes.begin(), ms_boneIndexes.end()), ms_boneIndexes.end());
 }
 
 const glm::vec3& CDriverConfig::GetBasePosition()
@@ -65,4 +98,9 @@ const glm::vec3& CDriverConfig::GetBasePosition()
 const glm::quat& CDriverConfig::GetBaseRotation()
 {
     return ms_baseRotation;
+}
+
+const std::vector<size_t>& CDriverConfig::GetBoneIndexes()
+{
+    return ms_boneIndexes;
 }

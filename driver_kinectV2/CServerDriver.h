@@ -2,29 +2,22 @@
 
 class CEmulatedDevice;
 class CKinectHandler;
-struct SensorData;
+struct FrameData;
 
 class CServerDriver final : public vr::IServerTrackedDeviceProvider
 {
-    enum TrackerIndex : size_t
-    {
-        TI_Hips = 0U,
-        TI_LeftAnkle,
-        TI_RightAnkle,
-
-        TI_Count
-    };
-
     static const char* const ms_interfaces[];
 
     CKinectHandler *m_kinectHandler;
     std::thread *m_kinectThread;
     std::mutex m_kinectLock;
     std::atomic<bool> m_kinectActive;
-    std::vector<SensorData*> m_sensorHistory;
+    std::vector<FrameData*> m_frameHistory;
+    size_t m_frameHistoryCount;
 
     CEmulatedDevice *m_kinectStation;
-    CEmulatedDevice *m_trackers[TI_Count];
+    std::vector<CEmulatedDevice*> m_trackers;
+    size_t m_trackersCount;
 
     bool m_hotkeyState;
 

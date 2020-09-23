@@ -6,6 +6,7 @@ class CKinectConfig final
 
     glm::vec3 m_basePosition;
     glm::quat m_baseRotation;
+    std::vector<size_t> m_boneIndexes; // Storage only
 
     CKinectConfig(const CKinectConfig &that) = delete;
     CKinectConfig& operator=(const CKinectConfig &that) = delete;

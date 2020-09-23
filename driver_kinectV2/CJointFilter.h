@@ -11,9 +11,9 @@ class CJointFilter final
         unsigned long m_frameCount;
     };
 
-    float m_smoothing;
-    float m_correction;
-    float m_prediction;
+    static const float ms_smoothing;
+    static const float ms_correction;
+    static const float ms_prediction;
     float m_jitterRadius;
     float m_maxDeviationRadius;
 

@@ -2,12 +2,13 @@
 
 #include "CJointFilter.h"
 
+const float CJointFilter::ms_smoothing = 0.25f;
+const float CJointFilter::ms_correction = 0.25f;
+const float CJointFilter::ms_prediction = 0.25f;
+
 CJointFilter::CJointFilter()
 {
     m_maxDeviationRadius = 0.05f;
-    m_smoothing = 0.25f;
-    m_correction = 0.25f;
-    m_prediction = 0.25f;
     m_jitterRadius = 0.03f;
     m_history.m_rawPosition = glm::vec3(0.f);
     m_history.m_filteredPosition = glm::vec3(0.f);
@@ -58,7 +59,7 @@ void CJointFilter::Update(const Joint &f_joint)
     {
         l_filteredPosition = (l_rawPosition + m_history.m_rawPosition)*0.5f;
         l_diff = l_filteredPosition - m_history.m_filteredPosition;
-        l_trend = l_diff*m_correction + m_history.m_trend*(1.0f - m_correction);
+        l_trend = l_diff*ms_correction + m_history.m_trend*(1.0f - ms_correction);
         m_history.m_frameCount++;
     }
     else
@@ -71,14 +72,14 @@ void CJointFilter::Update(const Joint &f_joint)
         else l_filteredPosition = l_rawPosition;
 
         // Now the double exponential smoothing filter
-        l_filteredPosition = l_filteredPosition * (1.0f - m_smoothing) + (m_history.m_filteredPosition + m_history.m_trend)*m_smoothing;
+        l_filteredPosition = l_filteredPosition * (1.0f - ms_smoothing) + (m_history.m_filteredPosition + m_history.m_trend)*ms_smoothing;
 
         l_diff = l_filteredPosition - m_history.m_filteredPosition;
-        l_trend = l_diff*m_correction + m_history.m_trend*(1.0f - m_correction);
+        l_trend = l_diff*ms_correction + m_history.m_trend*(1.0f - ms_correction);
     }
 
     // Predict into the future to reduce latency
-    l_predictedPosition = l_filteredPosition + l_trend*m_prediction;
+    l_predictedPosition = l_filteredPosition + l_trend*ms_prediction;
 
     // Check that we are not too far away from raw data
     l_diff = l_predictedPosition - l_rawPosition;

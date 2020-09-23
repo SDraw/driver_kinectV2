@@ -38,9 +38,10 @@ CServerDriver::CServerDriver()
 {
     m_kinectHandler = nullptr;
     m_kinectStation = nullptr;
-    for(size_t i = 0U; i < TI_Count; i++) m_trackers[i] = nullptr;
+    m_trackersCount = 0U;
     m_kinectThread = nullptr;
     m_kinectActive = false;
+    m_frameHistoryCount = 0U;
     m_hotkeyState = false;
 }
 
@@ -51,19 +52,22 @@ CServerDriver::~CServerDriver()
 // vr::IServerTrackedDeviceProvider
 vr::EVRInitError CServerDriver::Init(vr::IVRDriverContext *pDriverContext)
 {
-    CDriverConfig::Load();
     VR_INIT_SERVER_DRIVER_CONTEXT(pDriverContext);
+    CDriverConfig::Load();
 
-    m_kinectHandler = new CKinectHandler();
+    m_kinectHandler = new CKinectHandler(CDriverConfig::GetBoneIndexes());
     m_kinectActive = true;
     m_kinectThread = new std::thread(&CServerDriver::KinectProcess, this);
 
     // Add trackers
-    for(size_t i = 0U; i < TI_Count; i++)
+    for(auto l_index : CDriverConfig::GetBoneIndexes())
     {
-        m_trackers[i] = new CTrackerVive(i);
-        vr::VRServerDriverHost()->TrackedDeviceAdded(m_trackers[i]->GetSerial().c_str(), vr::TrackedDeviceClass_GenericTracker, m_trackers[i]);
+        CEmulatedDevice *l_tracker = new CTrackerVive(l_index);
+        m_trackers.push_back(l_tracker);
+        vr::VRServerDriverHost()->TrackedDeviceAdded(l_tracker->GetSerial().c_str(), vr::TrackedDeviceClass_GenericTracker, l_tracker);
     }
+    m_trackers.shrink_to_fit();
+    m_trackersCount = m_trackers.size();
 
     // Add fake station as command relay with Kinect model
     m_kinectStation = new CKinectStation(this);
@@ -74,10 +78,10 @@ vr::EVRInitError CServerDriver::Init(vr::IVRDriverContext *pDriverContext)
     const glm::quat &l_rotation = CDriverConfig::GetBaseRotation();
     m_kinectStation->SetPosition(l_position.x, l_position.y, l_position.z);
     m_kinectStation->SetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
-    for(size_t i = 0U; i < TI_Count; i++)
+    for(auto l_tracker : m_trackers)
     {
-        m_trackers[i]->SetOffsetPosition(l_position.x, l_position.y, l_position.z);
-        m_trackers[i]->SetOffsetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
+        l_tracker->SetOffsetPosition(l_position.x, l_position.y, l_position.z);
+        l_tracker->SetOffsetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
     }
 
     return vr::VRInitError_None;
@@ -85,11 +89,9 @@ vr::EVRInitError CServerDriver::Init(vr::IVRDriverContext *pDriverContext)
 
 void CServerDriver::Cleanup()
 {
-    for(size_t i = 0U; i < TI_Count; i++)
-    {
-        delete m_trackers[i];
-        m_trackers[i] = nullptr;
-    }
+    for(auto l_tracker : m_trackers) delete l_tracker;
+    m_trackers.clear();
+    m_trackersCount = 0U;
 
     delete m_kinectStation;
     m_kinectStation = nullptr;
@@ -104,8 +106,9 @@ void CServerDriver::Cleanup()
     delete m_kinectHandler;
     m_kinectHandler = nullptr;
 
-    for(auto l_history : m_sensorHistory) delete l_history;
-    m_sensorHistory.clear();
+    for(auto l_frame : m_frameHistory) delete l_frame;
+    m_frameHistory.clear();
+    m_frameHistoryCount = 0U;
 
     VR_CLEANUP_SERVER_DRIVER_CONTEXT();
 }
@@ -119,31 +122,39 @@ void CServerDriver::RunFrame()
 {
     if(m_kinectLock.try_lock())
     {
-        const SensorData &l_sensorData = m_kinectHandler->GetSensorData();
-        if(m_sensorHistory.size() < HI_Count) m_sensorHistory.push_back(new SensorData(l_sensorData)); // Frame time is irrelevant
+        const FrameData *l_frameData = m_kinectHandler->GetFrameData();
+        if(m_frameHistoryCount == HI_Count)
+        {
+            if(m_frameHistory[HI_Last]->m_frameTime != l_frameData->m_frameTime)
+            {
+                // Copy 'Last' to 'Previous', current to 'Last'
+                std::memcpy(m_frameHistory[HI_Previous], m_frameHistory[HI_Last], sizeof(FrameData));
+                std::memcpy(m_frameHistory[HI_Last], l_frameData, sizeof(FrameData));
+            }
+        }
         else
         {
-            if(m_sensorHistory[HI_Last]->m_frameTime != l_sensorData.m_frameTime)
-            {
-                // New frame, move data
-                std::memcpy(m_sensorHistory[HI_Previous], m_sensorHistory[HI_Last], sizeof(SensorData));
-                std::memcpy(m_sensorHistory[HI_Last], &l_sensorData, sizeof(SensorData));
-            }
+            FrameData *l_frameSnapshot = new FrameData();
+            std::memcpy(l_frameSnapshot, l_frameData, sizeof(FrameData));
+            m_frameHistory.push_back(l_frameSnapshot); // Frame time is irrelevant
+            m_frameHistoryCount++;
         }
         m_kinectLock.unlock();
     }
 
     // Smooth history data
-    if(m_sensorHistory.size() == HI_Count)
+    if(m_frameHistoryCount == HI_Count)
     {
-        const ULONGLONG l_diff = (GetTickCount64() - m_sensorHistory[HI_Last]->m_tick);
+        const ULONGLONG l_diff = (GetTickCount64() - m_frameHistory[HI_Last]->m_tick);
         float l_smooth = static_cast<float>(l_diff) / 33.333333f;
         l_smooth = glm::clamp(l_smooth, 0.f, 1.5f); // Extra clamp if new frame from Kinect will be slightly delayed
 
-        for(size_t i = 0U; i < TI_Count; i++)
+        const std::vector<size_t> &l_boneIndexes = CDriverConfig::GetBoneIndexes();
+        for(size_t i = 0U; i < m_trackersCount; i++)
         {
-            const JointData &l_jointA = m_sensorHistory[HI_Previous]->m_joints[i];
-            const JointData &l_jointB = m_sensorHistory[HI_Last]->m_joints[i];
+            const size_t l_boneIndex = l_boneIndexes[i];
+            const JointData &l_jointA = m_frameHistory[HI_Previous]->m_joints[l_boneIndex];
+            const JointData &l_jointB = m_frameHistory[HI_Last]->m_joints[l_boneIndex];
 
             const glm::vec3 l_jointPosA(-l_jointA.x, l_jointA.y, -l_jointA.z);
             const glm::vec3 l_jointPosB(-l_jointB.x, l_jointB.y, -l_jointB.z);
@@ -166,10 +177,10 @@ void CServerDriver::RunFrame()
         if(m_hotkeyState)
         {
             // Switch tracking
-            for(size_t i = 0U; i < TI_Count; i++)
+            for(auto l_tracker : m_trackers)
             {
-                const bool l_connected = m_trackers[i]->IsConnected();
-                m_trackers[i]->SetConnected(!l_connected);
+                const bool l_connected = l_tracker->IsConnected();
+                l_tracker->SetConnected(!l_connected);
             }
             m_kinectHandler->SetPaused(!m_kinectHandler->IsPaused());
         }
@@ -177,7 +188,7 @@ void CServerDriver::RunFrame()
 
     // Update devices
     m_kinectStation->RunFrame();
-    for(size_t i = 0U; i < TI_Count; i++) m_trackers[i]->RunFrame();
+    for(auto l_tracker : m_trackers) l_tracker->RunFrame();
 }
 
 bool CServerDriver::ShouldBlockStandbyMode()
@@ -235,18 +246,18 @@ void CServerDriver::ProcessExternalMessage(const char *f_message)
 
                 m_kinectStation->SetPosition(l_position.x, l_position.y, l_position.z);
                 m_kinectStation->SetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
-                for(size_t i = 0U; i < TI_Count; i++)
+                for(auto l_tracker : m_trackers)
                 {
-                    m_trackers[i]->SetOffsetPosition(l_position.x, l_position.y, l_position.z);
-                    m_trackers[i]->SetOffsetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
+                    l_tracker->SetOffsetPosition(l_position.x, l_position.y, l_position.z);
+                    l_tracker->SetOffsetRotation(l_rotation.x, l_rotation.y, l_rotation.z, l_rotation.w);
                 }
             } break;
             case MessageIndex::MI_Switch:
             {
-                for(size_t i = 0U; i < TI_Count; i++)
+                for(auto l_tracker : m_trackers)
                 {
-                    const bool l_connected = m_trackers[i]->IsConnected();
-                    m_trackers[i]->SetConnected(!l_connected);
+                    const bool l_connected = l_tracker->IsConnected();
+                    l_tracker->SetConnected(!l_connected);
                 }
                 m_kinectHandler->SetPaused(!m_kinectHandler->IsPaused());
             } break;

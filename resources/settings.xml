@@ -1,4 +1,31 @@
 <settings>
-    <setting name="basePosition" value="0.0 0.0 0.0"/>
-    <setting name="baseRotation" value="0.0 0.0 0.0 1.0"/>
+  <setting name="basePosition" value="0.0 0.0 0.0"/>
+  <setting name="baseRotation" value="0.0 0.0 0.0 1.0"/>
+  <setting name="trackers" value="">
+    <tracker bone="SpineBase" />
+    <!--<tracker bone="SpineMid" />
+    <tracker bone="Neck" />
+    <tracker bone="Head" />
+    <tracker bone="ShoulderLeft" />
+    <tracker bone="ElbowLeft" />
+    <tracker bone="WristLeft" />
+    <tracker bone="HandLeft" />
+    <tracker bone="ShoulderRight" />
+    <tracker bone="ElbowRight" />
+    <tracker bone="WristRight" />
+    <tracker bone="HandRight" />
+    <tracker bone="HipLeft" />
+    <tracker bone="KneeLeft" />-->
+    <tracker bone="AnkleLeft" />
+    <!--<tracker bone="FootLeft" />
+    <tracker bone="HipRight" />
+    <tracker bone="KneeRight" />-->
+    <tracker bone="AnkleRight" />
+    <!--<tracker bone="FootRight" />
+    <tracker bone="SpineShoulder" />
+    <tracker bone="HandTipLeft" />
+    <tracker bone="ThumbLeft" />
+    <tracker bone="HandTipRight" />
+    <tracker bone="ThumbRight" />-->
+  </setting>
 </settings>

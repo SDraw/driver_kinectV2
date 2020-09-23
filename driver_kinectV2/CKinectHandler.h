@@ -1,34 +1,26 @@
 #pragma once
 
-enum JointIndex : size_t
-{
-    JI_Hips = 0U,
-    JI_LeftAnkle,
-    JI_RightAnkle,
-
-    JI_Count
-};
+class CJointFilter;
 struct JointData
 {
     float x, y, z;
     float rx, ry, rz, rw;
 };
-struct SensorData
+struct FrameData
 {
-    JointData m_joints[JI_Count];
+    JointData m_joints[JointType_Count];
     TIMESPAN m_frameTime;
     ULONGLONG m_tick;
 };
-
-class CJointFilter;
 
 class CKinectHandler final
 {
     IKinectSensor *m_kinectSensor;
     IBodyFrameReader *m_bodyFrameReader;
 
-    std::vector<CJointFilter*> m_jointFilters;
-    SensorData m_sensorData;
+    bool m_jointUsed[JointType_Count];
+    CJointFilter *m_jointFilters[JointType_Count];
+    FrameData *m_frameData;
 
     std::atomic<bool> m_paused;
 
@@ -36,15 +28,14 @@ class CKinectHandler final
     CKinectHandler& operator=(const CKinectHandler &that) = delete;
 
     void Cleanup();
-
 public:
-    CKinectHandler();
+    CKinectHandler(const std::vector<size_t> &f_indexes);
     ~CKinectHandler();
 
     bool Initialize();
     void Terminate();
 
-    const SensorData& GetSensorData() const;
+    const FrameData* GetFrameData() const;
 
     bool IsPaused() const;
     void SetPaused(bool f_state);

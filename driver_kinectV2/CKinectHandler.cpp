@@ -3,19 +3,30 @@
 #include "CKinectHandler.h"
 #include "CJointFilter.h"
 
-const size_t g_AssignedTrackerJoint[3U]
-{
-    JointType_SpineBase,
-        JointType_AnkleLeft,
-        JointType_AnkleRight,
-};
-
-CKinectHandler::CKinectHandler()
+CKinectHandler::CKinectHandler(const std::vector<size_t> &f_indexes)
 {
     m_kinectSensor = nullptr;
     m_bodyFrameReader = nullptr;
-    m_sensorData = { { { 0.f } }, 0, 0U };
-    for(size_t i = 0U; i < JI_Count; i++) m_jointFilters.push_back(new CJointFilter());
+
+    for(size_t i = 0U; i < JointType_Count; i++)
+    {
+        m_jointUsed[i] = false;
+        m_jointFilters[i] = nullptr;
+    }
+    for(auto l_index : f_indexes)
+    {
+        if(l_index >= JointType_Count) continue;
+        if(!m_jointUsed[l_index])
+        {
+            m_jointUsed[l_index] = true;
+            m_jointFilters[l_index] = new CJointFilter();
+        }
+    }
+
+    m_frameData = new FrameData();
+    m_frameData->m_frameTime = 0;
+    m_frameData->m_tick = 0U;
+
     m_paused = false;
 }
 
@@ -57,8 +68,15 @@ void CKinectHandler::Terminate()
 
 void CKinectHandler::Cleanup()
 {
-    for(auto l_filter : m_jointFilters) delete l_filter;
-    m_jointFilters.clear();
+    for(size_t i = 0U; i < JointType_Count; i++)
+    {
+        m_jointUsed[i] = false;
+        delete m_jointFilters[i];
+        m_jointFilters[i] = nullptr;
+    }
+
+    delete m_frameData;
+    m_frameData = nullptr;
 
     if(m_bodyFrameReader)
     {
@@ -76,9 +94,9 @@ void CKinectHandler::Cleanup()
     m_paused = false;
 }
 
-const SensorData& CKinectHandler::GetSensorData() const
+const FrameData* CKinectHandler::GetFrameData() const
 {
-    return m_sensorData;
+    return m_frameData;
 }
 
 bool CKinectHandler::IsPaused() const
@@ -100,10 +118,10 @@ void CKinectHandler::Update()
         {
             TIMESPAN l_timeSpan = 0;
             l_bodyFrame->get_RelativeTime(&l_timeSpan);
-            if(l_timeSpan != m_sensorData.m_frameTime)
+            if(l_timeSpan != m_frameData->m_frameTime)
             {
-                m_sensorData.m_frameTime = l_timeSpan;
-                m_sensorData.m_tick = GetTickCount64();
+                m_frameData->m_frameTime = l_timeSpan;
+                m_frameData->m_tick = GetTickCount64();
             }
 
             IBody *l_bodies[BODY_COUNT] = { nullptr };
@@ -122,23 +140,26 @@ void CKinectHandler::Update()
                                 JointOrientation l_jointOrientations[JointType_Count];
                                 if((l_bodies[i]->GetJoints(JointType_Count, l_joints) >= S_OK) && (l_bodies[i]->GetJointOrientations(JointType_Count, l_jointOrientations) >= S_OK))
                                 {
-                                    for(size_t k = 0U; k < JI_Count; k++)
+                                    for(size_t k = 0U; k < JointType_Count; k++)
                                     {
-                                        m_jointFilters[k]->Update(l_joints[g_AssignedTrackerJoint[k]]);
-                                        const glm::vec3 &l_position = m_jointFilters[k]->GetFiltered();
-                                        JointData &l_jointData = m_sensorData.m_joints[k];
-                                        l_jointData.x = l_position.x;
-                                        l_jointData.y = l_position.y;
-                                        l_jointData.z = l_position.z;
+                                        if(m_jointUsed[k])
+                                        {
+                                            m_jointFilters[k]->Update(l_joints[k]);
+                                            const glm::vec3 &l_position = m_jointFilters[k]->GetFiltered();
+                                            JointData &l_jointData = m_frameData->m_joints[k];
+                                            l_jointData.x = l_position.x;
+                                            l_jointData.y = l_position.y;
+                                            l_jointData.z = l_position.z;
 
-                                        const Vector4 &l_kinectRotation = l_jointOrientations[g_AssignedTrackerJoint[k]].Orientation;
-                                        const glm::quat l_newRotation(l_kinectRotation.w, l_kinectRotation.x, l_kinectRotation.y, l_kinectRotation.z);
-                                        const glm::quat l_oldRotation(l_jointData.rw, l_jointData.rx, l_jointData.ry, l_jointData.rz);
-                                        const glm::quat l_smoothedRotation = glm::slerp(l_oldRotation, l_newRotation, 0.7f);
-                                        l_jointData.rx = l_smoothedRotation.x;
-                                        l_jointData.ry = l_smoothedRotation.y;
-                                        l_jointData.rz = l_smoothedRotation.z;
-                                        l_jointData.rw = l_smoothedRotation.w;
+                                            const Vector4 &l_kinectRotation = l_jointOrientations[k].Orientation;
+                                            const glm::quat l_newRotation(l_kinectRotation.w, l_kinectRotation.x, l_kinectRotation.y, l_kinectRotation.z);
+                                            const glm::quat l_oldRotation(l_jointData.rw, l_jointData.rx, l_jointData.ry, l_jointData.rz);
+                                            const glm::quat l_smoothedRotation = glm::slerp(l_oldRotation, l_newRotation, 0.75f);
+                                            l_jointData.rx = l_smoothedRotation.x;
+                                            l_jointData.ry = l_smoothedRotation.y;
+                                            l_jointData.rz = l_smoothedRotation.z;
+                                            l_jointData.rw = l_smoothedRotation.w;
+                                        }
                                     }
                                 }
 
