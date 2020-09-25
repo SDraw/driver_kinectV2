@@ -6,6 +6,7 @@ CTrackerVive::CTrackerVive(size_t f_index)
 {
     m_serial.assign("LHR-CB0CD00");
     m_serial.append(std::to_string(f_index));
+    m_index = f_index;
 }
 
 CTrackerVive::~CTrackerVive()

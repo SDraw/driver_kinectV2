@@ -38,7 +38,6 @@ CServerDriver::CServerDriver()
 {
     m_kinectHandler = nullptr;
     m_kinectStation = nullptr;
-    m_trackersCount = 0U;
     m_kinectThread = nullptr;
     m_kinectActive = false;
     m_frameHistoryCount = 0U;
@@ -66,8 +65,6 @@ vr::EVRInitError CServerDriver::Init(vr::IVRDriverContext *pDriverContext)
         m_trackers.push_back(l_tracker);
         vr::VRServerDriverHost()->TrackedDeviceAdded(l_tracker->GetSerial().c_str(), vr::TrackedDeviceClass_GenericTracker, l_tracker);
     }
-    m_trackers.shrink_to_fit();
-    m_trackersCount = m_trackers.size();
 
     // Add fake station as command relay with Kinect model
     m_kinectStation = new CKinectStation(this);
@@ -91,7 +88,6 @@ void CServerDriver::Cleanup()
 {
     for(auto l_tracker : m_trackers) delete l_tracker;
     m_trackers.clear();
-    m_trackersCount = 0U;
 
     delete m_kinectStation;
     m_kinectStation = nullptr;
@@ -149,12 +145,11 @@ void CServerDriver::RunFrame()
         float l_smooth = static_cast<float>(l_diff) / 33.333333f;
         l_smooth = glm::clamp(l_smooth, 0.f, 1.5f); // Extra clamp if new frame from Kinect will be slightly delayed
 
-        const std::vector<size_t> &l_boneIndexes = CDriverConfig::GetBoneIndexes();
-        for(size_t i = 0U; i < m_trackersCount; i++)
+        for(auto l_tracker : m_trackers)
         {
-            const size_t l_boneIndex = l_boneIndexes[i];
-            const JointData &l_jointA = m_frameHistory[HI_Previous]->m_joints[l_boneIndex];
-            const JointData &l_jointB = m_frameHistory[HI_Last]->m_joints[l_boneIndex];
+            const size_t l_index = l_tracker->GetIndex();
+            const JointData &l_jointA = m_frameHistory[HI_Previous]->m_joints[l_index];
+            const JointData &l_jointB = m_frameHistory[HI_Last]->m_joints[l_index];
 
             const glm::vec3 l_jointPosA(-l_jointA.x, l_jointA.y, -l_jointA.z);
             const glm::vec3 l_jointPosB(-l_jointB.x, l_jointB.y, -l_jointB.z);
@@ -165,8 +160,8 @@ void CServerDriver::RunFrame()
             const glm::vec3 l_linearPos = glm::mix(l_jointPosA, l_jointPosB, l_smooth);
             const glm::quat l_linearRot = glm::slerp(l_jointRotA, l_jointRotB, l_smooth);
 
-            m_trackers[i]->SetPosition(l_linearPos.x, l_linearPos.y, l_linearPos.z);
-            m_trackers[i]->SetRotation(l_linearRot.x, l_linearRot.y, l_linearRot.z, l_linearRot.w);
+            l_tracker->SetPosition(l_linearPos.x, l_linearPos.y, l_linearPos.z);
+            l_tracker->SetRotation(l_linearRot.x, l_linearRot.y, l_linearRot.z, l_linearRot.w);
         }
     }
 

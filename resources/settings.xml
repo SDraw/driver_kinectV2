@@ -2,30 +2,30 @@
   <setting name="basePosition" value="0.0 0.0 0.0"/>
   <setting name="baseRotation" value="0.0 0.0 0.0 1.0"/>
   <setting name="trackers" value="">
-    <tracker bone="SpineBase" />
-    <!--<tracker bone="SpineMid" />
-    <tracker bone="Neck" />
-    <tracker bone="Head" />
-    <tracker bone="ShoulderLeft" />
-    <tracker bone="ElbowLeft" />
-    <tracker bone="WristLeft" />
-    <tracker bone="HandLeft" />
-    <tracker bone="ShoulderRight" />
-    <tracker bone="ElbowRight" />
-    <tracker bone="WristRight" />
-    <tracker bone="HandRight" />
-    <tracker bone="HipLeft" />
-    <tracker bone="KneeLeft" />-->
-    <tracker bone="AnkleLeft" />
-    <!--<tracker bone="FootLeft" />
-    <tracker bone="HipRight" />
-    <tracker bone="KneeRight" />-->
-    <tracker bone="AnkleRight" />
-    <!--<tracker bone="FootRight" />
-    <tracker bone="SpineShoulder" />
-    <tracker bone="HandTipLeft" />
-    <tracker bone="ThumbLeft" />
-    <tracker bone="HandTipRight" />
-    <tracker bone="ThumbRight" />-->
+    <tracker name="SpineBase" value="true"/>
+    <tracker name="SpineMid" value="false"/>
+    <tracker name="Neck" value="false"/>
+    <tracker name="Head" value="false"/>
+    <tracker name="ShoulderLeft" value="false"/>
+    <tracker name="ElbowLeft" value="false"/>
+    <tracker name="WristLeft" value="false"/>
+    <tracker name="HandLeft" value="false"/>
+    <tracker name="ShoulderRight" value="false"/>
+    <tracker name="ElbowRight" value="false"/>
+    <tracker name="WristRight" value="false"/>
+    <tracker name="HandRight" value="false"/>
+    <tracker name="HipLeft" value="false"/>
+    <tracker name="KneeLeft" value="false"/>
+    <tracker name="AnkleLeft" value="true"/>
+    <tracker name="FootLeft" value="false"/>
+    <tracker name="HipRight" value="false"/>
+    <tracker name="KneeRight" value="false"/>
+    <tracker name="AnkleRight" value="true"/>
+    <tracker name="FootRight" value="false"/>
+    <tracker name="SpineShoulder" value="false"/>
+    <tracker name="HandTipLeft" value="false"/>
+    <tracker name="ThumbLeft" value="false"/>
+    <tracker name="HandTipRight" value="false"/>
+    <tracker name="ThumbRight" value="false"/>
   </setting>
 </settings>

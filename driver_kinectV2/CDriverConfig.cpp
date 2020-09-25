@@ -69,11 +69,15 @@ void CDriverConfig::Load()
                         {
                             for(pugi::xml_node l_trackerNode = l_node.child("tracker"); l_trackerNode; l_trackerNode = l_trackerNode.next_sibling("tracker"))
                             {
-                                const pugi::xml_attribute l_indexAttribute = l_trackerNode.attribute("bone");
-                                if(l_indexAttribute)
+                                const pugi::xml_attribute l_attribBone = l_trackerNode.attribute("name");
+                                const pugi::xml_attribute l_attribEnabled = l_trackerNode.attribute("value");
+                                if(l_attribBone && l_attribEnabled)
                                 {
-                                    size_t l_boneIndex = ReadEnumVector(l_indexAttribute.as_string(), g_BoneNames);
-                                    if(l_boneIndex != std::numeric_limits<size_t>::max()) ms_boneIndexes.push_back(l_boneIndex);
+                                    size_t l_boneIndex = ReadEnumVector(l_attribBone.as_string(), g_BoneNames);
+                                    if(l_boneIndex != std::numeric_limits<size_t>::max())
+                                    {
+                                        if(l_attribEnabled.as_bool(false)) ms_boneIndexes.push_back(l_boneIndex);
+                                    }
                                 }
                             }
                         } break;

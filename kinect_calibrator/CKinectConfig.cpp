@@ -75,11 +75,15 @@ void CKinectConfig::Load()
                         {
                             for(pugi::xml_node l_trackerNode = l_node.child("tracker"); l_trackerNode; l_trackerNode = l_trackerNode.next_sibling("tracker"))
                             {
-                                const pugi::xml_attribute l_indexAttribute = l_trackerNode.attribute("bone");
-                                if(l_indexAttribute)
+                                const pugi::xml_attribute l_attribBone = l_trackerNode.attribute("name");
+                                const pugi::xml_attribute l_attribEnabled = l_trackerNode.attribute("value");
+                                if(l_attribBone && l_attribEnabled)
                                 {
-                                    size_t l_boneIndex = ReadEnumVector(l_indexAttribute.as_string(), g_BoneNames);
-                                    if(l_boneIndex != std::numeric_limits<size_t>::max()) m_boneIndexes.push_back(l_boneIndex);
+                                    size_t l_boneIndex = ReadEnumVector(l_attribBone.as_string(), g_BoneNames);
+                                    if(l_boneIndex != std::numeric_limits<size_t>::max())
+                                    {
+                                        m_trackersData.emplace_back(l_boneIndex, l_attribEnabled.as_bool(false));
+                                    }
                                 }
                             }
                         } break;
@@ -91,13 +95,16 @@ void CKinectConfig::Load()
     delete l_document;
 
     // Remove duplicated bones
-    std::sort(m_boneIndexes.begin(), m_boneIndexes.end());
-    m_boneIndexes.erase(std::unique(m_boneIndexes.begin(), m_boneIndexes.end()), m_boneIndexes.end());
-    if(m_boneIndexes.empty())
+    std::sort(m_trackersData.begin(), m_trackersData.end(),CompareTrackerData_Sort);
+    m_trackersData.erase(std::unique(m_trackersData.begin(), m_trackersData.end(),CompareTrackerData_Unique), m_trackersData.end());
+
+    // Add default tracked bones if nothing is parsed
+    if(m_trackersData.empty())
     {
-        m_boneIndexes.push_back(0U); // SpineBase
-        m_boneIndexes.push_back(14U); // AnkleLeft
-        m_boneIndexes.push_back(18U); // AnkleRight
+        for(size_t i = 0U, j = g_BoneNames.size(); i < j; i++) m_trackersData.emplace_back(i, false);
+        m_trackersData[0U].m_enabled = true; // SpineBase
+        m_trackersData[14U].m_enabled = true; // AnkleLeft
+        m_trackersData[18U].m_enabled = true; // AnkleRight
     }
 }
 
@@ -142,13 +149,18 @@ void CKinectConfig::Save()
                         case SettingIndex::SI_Trackers:
                         {
                             l_valueAttrib.set_value("");
-                            for(auto l_index : m_boneIndexes)
+                            for(auto l_data : m_trackersData)
                             {
                                 pugi::xml_node l_trackerNode = l_settingNode.append_child("tracker");
                                 if(l_trackerNode)
                                 {
-                                    pugi::xml_attribute l_boneAttribute = l_trackerNode.append_attribute("bone");
-                                    if(l_boneAttribute) l_boneAttribute.set_value(g_BoneNames[l_index].c_str());
+                                    pugi::xml_attribute l_boneAttribute = l_trackerNode.append_attribute("name");
+                                    pugi::xml_attribute l_enabledAttribute = l_trackerNode.append_attribute("value");
+                                    if(l_boneAttribute && l_enabledAttribute)
+                                    {
+                                        l_boneAttribute.set_value(g_BoneNames[l_data.m_boneIndex].c_str());
+                                        l_enabledAttribute.set_value(l_data.m_enabled);
+                                    }
                                 }
                             }
                         } break;
@@ -179,4 +191,14 @@ void CKinectConfig::SetBaseRotation(const glm::quat &f_rot)
 const glm::quat& CKinectConfig::GetBaseRotation() const
 {
     return m_baseRotation;
+}
+
+bool CKinectConfig::CompareTrackerData_Sort(const TrackerData &f_trackerA, const TrackerData &f_trackerB)
+{
+    return (f_trackerA.m_boneIndex < f_trackerB.m_boneIndex);
+}
+
+bool CKinectConfig::CompareTrackerData_Unique(const TrackerData &f_trackerA, const TrackerData &f_trackerB)
+{
+    return (f_trackerA.m_boneIndex == f_trackerB.m_boneIndex);
 }

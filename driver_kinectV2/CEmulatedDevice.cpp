@@ -25,6 +25,8 @@ CEmulatedDevice::CEmulatedDevice()
 
     m_propertyHandle = vr::k_ulInvalidPropertyContainer;
     m_trackedDevice = vr::k_unTrackedDeviceIndexInvalid;
+
+    m_index = std::numeric_limits<size_t>::max();
 }
 
 CEmulatedDevice::~CEmulatedDevice()
@@ -83,6 +85,12 @@ const std::string& CEmulatedDevice::GetSerial() const
 {
     return m_serial;
 }
+
+const size_t CEmulatedDevice::GetIndex() const
+{
+    return m_index;
+}
+
 
 bool CEmulatedDevice::IsConnected() const
 {

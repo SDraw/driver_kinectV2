@@ -17,7 +17,6 @@ class CServerDriver final : public vr::IServerTrackedDeviceProvider
 
     CEmulatedDevice *m_kinectStation;
     std::vector<CEmulatedDevice*> m_trackers;
-    size_t m_trackersCount;
 
     bool m_hotkeyState;
 

@@ -19,6 +19,7 @@ public:
     virtual ~CEmulatedDevice();
 
     const std::string& GetSerial() const;
+    const size_t GetIndex() const;
 
     bool IsConnected() const;
     void SetConnected(bool f_state);
@@ -35,6 +36,7 @@ protected:
     uint32_t m_trackedDevice;
 
     std::string m_serial;
+    size_t m_index;
 
     virtual void SetupProperties();
 };
