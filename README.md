@@ -26,7 +26,7 @@ SteamVR driver for Kinect for XBox One / Kinect 2 for Windows.
 # Usage
 * Press **Ctrl-T** to disable/enable tracking.
   * Alternative way: send debug message `switch` to fake base station device.
-* By default only `SpineMid`, `AnkleLeft` and `AnkleRight` bones are interpreted as trackers. You can add/remove specific bones for/from tracking by editing `[resources/settings.xml](../master/resources/settings.xml)`.
+* By default only `SpineMid`, `AnkleLeft` and `AnkleRight` bones are interpreted as trackers. You can add/remove specific bones for/from tracking by editing [`resources/settings.xml`](../master/resources/settings.xml).
 
 # Building
 * Install [Kinect for Windows SDK 2.0](https://www.microsoft.com/en-us/download/details.aspx?id=44561).
