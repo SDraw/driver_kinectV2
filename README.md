@@ -8,8 +8,7 @@ SteamVR driver for Kinect for XBox One / Kinect 2 for Windows.
 
 # Installation
 * Install [Kinect for Windows Runtime 2.0](https://www.microsoft.com/en-us/download/details.aspx?id=44559)
-* Create `kinectV2` folder in `<SteamVR_folder>/drivers`
-* Extract [latest release archive](../../releases/latest) to `<SteamVR_folder>/drivers/kinectV2`
+* Extract [latest release archive](../../releases/latest) to `<SteamVR_folder>/drivers`
 * Add line in section `steamvr` of `<Steam_folder>/config/steamvr.vrsettings` file:
   ```JSON
   "activateMultipleDrivers": true,
