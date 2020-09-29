@@ -4,9 +4,9 @@
 
 #include "Utils.h"
 
-extern char g_ModulePath[];
+extern char g_modulePath[];
 
-const std::vector<std::string> g_SettingNames
+const std::vector<std::string> g_settingNames
 {
     "basePosition", "baseRotation", "trackers"
 };
@@ -17,7 +17,7 @@ enum SettingIndex : size_t
     SI_Trackers
 };
 
-const std::vector<std::string> g_BoneNames
+const std::vector<std::string> g_boneNames
 {
     "SpineBase", "SpineMid", "Neck", "Head",
     "ShoulderLeft", "ElbowLeft", "WristLeft", "HandLeft",
@@ -35,7 +35,7 @@ std::vector<size_t> CDriverConfig::ms_boneIndexes;
 
 void CDriverConfig::Load()
 {
-    std::string l_path(g_ModulePath);
+    std::string l_path(g_modulePath);
     l_path.erase(l_path.begin() + l_path.rfind('\\'), l_path.end());
     l_path.append("\\..\\..\\resources\\settings.xml");
 
@@ -51,7 +51,7 @@ void CDriverConfig::Load()
                 const pugi::xml_attribute l_attribValue = l_node.attribute("value");
                 if(l_attribName && l_attribValue)
                 {
-                    switch(ReadEnumVector(l_attribName.as_string(), g_SettingNames))
+                    switch(ReadEnumVector(l_attribName.as_string(), g_settingNames))
                     {
                         case SettingIndex::SI_BasePosition:
                         {
@@ -73,7 +73,7 @@ void CDriverConfig::Load()
                                 const pugi::xml_attribute l_attribEnabled = l_trackerNode.attribute("value");
                                 if(l_attribBone && l_attribEnabled)
                                 {
-                                    size_t l_boneIndex = ReadEnumVector(l_attribBone.as_string(), g_BoneNames);
+                                    size_t l_boneIndex = ReadEnumVector(l_attribBone.as_string(), g_boneNames);
                                     if(l_boneIndex != std::numeric_limits<size_t>::max())
                                     {
                                         if(l_attribEnabled.as_bool(false)) ms_boneIndexes.push_back(l_boneIndex);

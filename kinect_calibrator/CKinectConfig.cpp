@@ -4,7 +4,7 @@
 
 #include "Utils.h"
 
-const std::vector<std::string> g_SettingNames
+const std::vector<std::string> g_settingNames
 {
     "basePosition", "baseRotation", "trackers"
 };
@@ -17,7 +17,7 @@ enum SettingIndex : size_t
     SI_Count
 };
 
-const std::vector<std::string> g_BoneNames
+const std::vector<std::string> g_boneNames
 {
     "SpineBase", "SpineMid", "Neck", "Head",
     "ShoulderLeft", "ElbowLeft", "WristLeft", "HandLeft",
@@ -59,7 +59,7 @@ void CKinectConfig::Load()
                 const pugi::xml_attribute l_attribValue = l_node.attribute("value");
                 if(l_attribName && l_attribValue)
                 {
-                    switch(ReadEnumVector(l_attribName.as_string(), g_SettingNames))
+                    switch(ReadEnumVector(l_attribName.as_string(), g_settingNames))
                     {
                         case SettingIndex::SI_BasePosition:
                         {
@@ -79,7 +79,7 @@ void CKinectConfig::Load()
                                 const pugi::xml_attribute l_attribEnabled = l_trackerNode.attribute("value");
                                 if(l_attribBone && l_attribEnabled)
                                 {
-                                    size_t l_boneIndex = ReadEnumVector(l_attribBone.as_string(), g_BoneNames);
+                                    size_t l_boneIndex = ReadEnumVector(l_attribBone.as_string(), g_boneNames);
                                     if(l_boneIndex != std::numeric_limits<size_t>::max())
                                     {
                                         m_trackersData.emplace_back(l_boneIndex, l_attribEnabled.as_bool(false));
@@ -101,7 +101,7 @@ void CKinectConfig::Load()
     // Add default tracked bones if nothing is parsed
     if(m_trackersData.empty())
     {
-        for(size_t i = 0U, j = g_BoneNames.size(); i < j; i++) m_trackersData.emplace_back(i, false);
+        for(size_t i = 0U, j = g_boneNames.size(); i < j; i++) m_trackersData.emplace_back(i, false);
         m_trackersData[0U].m_enabled = true; // SpineBase
         m_trackersData[14U].m_enabled = true; // AnkleLeft
         m_trackersData[18U].m_enabled = true; // AnkleRight
@@ -123,7 +123,7 @@ void CKinectConfig::Save()
                 pugi::xml_attribute l_valueAttrib = l_settingNode.append_attribute("value");
                 if(l_nameAttrib && l_valueAttrib)
                 {
-                    l_nameAttrib.set_value(g_SettingNames[i].c_str());
+                    l_nameAttrib.set_value(g_settingNames[i].c_str());
                     switch(i)
                     {
                         case SettingIndex::SI_BasePosition:
@@ -158,7 +158,7 @@ void CKinectConfig::Save()
                                     pugi::xml_attribute l_enabledAttribute = l_trackerNode.append_attribute("value");
                                     if(l_boneAttribute && l_enabledAttribute)
                                     {
-                                        l_boneAttribute.set_value(g_BoneNames[l_data.m_boneIndex].c_str());
+                                        l_boneAttribute.set_value(g_boneNames[l_data.m_boneIndex].c_str());
                                         l_enabledAttribute.set_value(l_data.m_enabled);
                                     }
                                 }

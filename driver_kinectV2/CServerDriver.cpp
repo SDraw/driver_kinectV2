@@ -9,7 +9,7 @@
 #include "CDriverConfig.h"
 #include "Utils.h"
 
-const std::vector<std::string> g_MessageNames
+const std::vector<std::string> g_messageNames
 {
     "calibrate", "switch"
 };
@@ -231,7 +231,7 @@ void CServerDriver::ProcessExternalMessage(const char *f_message)
     l_stream >> l_message;
     if(!l_message.empty() && !l_stream.fail())
     {
-        switch(ReadEnumVector(l_message, g_MessageNames))
+        switch(ReadEnumVector(l_message, g_messageNames))
         {
             case MessageIndex::MI_Calibrate:
             {

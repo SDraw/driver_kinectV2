@@ -3,16 +3,16 @@
 #include "CKinectMonitor.h"
 #include "CKinectConfig.h"
 
-const char *g_NotificationText = "Base calibration\nLeft touchpad: Rotate left/right and up/down\tRight touchpad: Move left/right, up/down and (hold trigger) forward/backward\tPress grip to reset rotation or position";
-const std::chrono::milliseconds g_ThreadDelay(11U);
+const char *g_notificationText = "Base calibration\nLeft touchpad: Rotate left/right and up/down\tRight touchpad: Move left/right, up/down and (hold trigger) forward/backward\tPress grip to reset rotation or position";
+const std::chrono::milliseconds g_threadDelay(11U);
 
-const float g_Pi = glm::pi<float>();
-const glm::vec3 g_AxisX(1.f, 0.f, 0.f);
-const glm::vec3 g_AxisXN(-1.f, 0.f, 0.f);
-const glm::vec3 g_AxisY(0.f, 1.f, 0.f);
-const glm::vec3 g_AxisYN(0.f, -1.f, 0.f);
-const glm::vec3 g_AxisZ(0.f, 0.f, 1.f);
-const glm::vec3 g_AxisZN(0.f, 0.f, -1.f);
+const float g_pi = glm::pi<float>();
+const glm::vec3 g_axisX(1.f, 0.f, 0.f);
+const glm::vec3 g_axisXN(-1.f, 0.f, 0.f);
+const glm::vec3 g_axisY(0.f, 1.f, 0.f);
+const glm::vec3 g_axisYN(0.f, -1.f, 0.f);
+const glm::vec3 g_axisZ(0.f, 0.f, 1.f);
+const glm::vec3 g_axisZN(0.f, 0.f, -1.f);
 
 enum TouchpadQuadrant : unsigned char
 {
@@ -73,7 +73,7 @@ bool CKinectMonitor::Initialize()
             m_basePosition = m_kinectConfig->GetBasePosition();
             m_baseRotation = m_kinectConfig->GetBaseRotation();
 
-            vr::VRNotifications()->CreateNotification(m_overlay, 0U, vr::EVRNotificationType_Persistent, g_NotificationText, vr::EVRNotificationStyle_Application, nullptr, &m_notification);
+            vr::VRNotifications()->CreateNotification(m_overlay, 0U, vr::EVRNotificationType_Persistent, g_notificationText, vr::EVRNotificationStyle_Application, nullptr, &m_notification);
 
             m_active = true;
         }
@@ -135,10 +135,10 @@ bool CKinectMonitor::DoPulse()
                         const float l_absTheta = abs(l_theta);
 
                         TouchpadQuadrant l_quad = TQ_Unknown;
-                        if((l_absTheta >= 0.f) && (l_absTheta <= g_Pi*0.25f)) l_quad = TQ_Right;
+                        if((l_absTheta >= 0.f) && (l_absTheta <= g_pi*0.25f)) l_quad = TQ_Right;
                         else
                         {
-                            if((l_absTheta >= g_Pi*0.75) && (l_absTheta <= g_Pi)) l_quad = TQ_Left;
+                            if((l_absTheta >= g_pi*0.75) && (l_absTheta <= g_pi)) l_quad = TQ_Left;
                             else l_quad = (l_theta > 0.f) ? TQ_Up : TQ_Down;
                         }
 
@@ -148,16 +148,16 @@ bool CKinectMonitor::DoPulse()
                             switch(l_quad)
                             {
                                 case TQ_Right:
-                                    m_baseRotation = glm::rotate(m_baseRotation, g_Pi / 180.f, g_AxisY);
+                                    m_baseRotation = glm::rotate(m_baseRotation, g_pi / 180.f, g_axisY);
                                     break;
                                 case TQ_Left:
-                                    m_baseRotation = glm::rotate(m_baseRotation, -g_Pi / 180.f, g_AxisY);
+                                    m_baseRotation = glm::rotate(m_baseRotation, -g_pi / 180.f, g_axisY);
                                     break;
                                 case TQ_Up:
-                                    m_baseRotation = glm::rotate(m_baseRotation, g_Pi / 180.f, g_AxisX);
+                                    m_baseRotation = glm::rotate(m_baseRotation, g_pi / 180.f, g_axisX);
                                     break;
                                 case TQ_Down:
-                                    m_baseRotation = glm::rotate(m_baseRotation, -g_Pi / 180.f, g_AxisX);
+                                    m_baseRotation = glm::rotate(m_baseRotation, -g_pi / 180.f, g_axisX);
                                     break;
                             }
 
@@ -170,16 +170,16 @@ bool CKinectMonitor::DoPulse()
                             switch(l_quad)
                             {
                                 case TQ_Right:
-                                    m_basePosition += (m_baseRotation*g_AxisX) * 0.01f;
+                                    m_basePosition += (m_baseRotation*g_axisX) * 0.01f;
                                     break;
                                 case TQ_Left:
-                                    m_basePosition += (m_baseRotation*g_AxisXN)* 0.01f;
+                                    m_basePosition += (m_baseRotation*g_axisXN)* 0.01f;
                                     break;
                                 case TQ_Up:
-                                    m_basePosition += (m_baseRotation*(m_triggerPressed ? g_AxisZN : g_AxisY)) * 0.01f;
+                                    m_basePosition += (m_baseRotation*(m_triggerPressed ? g_axisZN : g_axisY)) * 0.01f;
                                     break;
                                 case TQ_Down:
-                                    m_basePosition += (m_baseRotation*(m_triggerPressed ? g_AxisZ : g_AxisYN)) * 0.01f;
+                                    m_basePosition += (m_baseRotation*(m_triggerPressed ? g_axisZ : g_axisYN)) * 0.01f;
                                     break;
                             }
 
@@ -235,7 +235,7 @@ bool CKinectMonitor::DoPulse()
     if(m_leftHand == vr::k_unTrackedDeviceIndexInvalid) m_leftHand = m_vrSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
     if(m_rightHand == vr::k_unTrackedDeviceIndexInvalid) m_rightHand = m_vrSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
 
-    std::this_thread::sleep_for(g_ThreadDelay);
+    std::this_thread::sleep_for(g_threadDelay);
     if(!m_active) m_kinectConfig->Save();
     return m_active;
 }

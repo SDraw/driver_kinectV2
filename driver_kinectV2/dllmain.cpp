@@ -2,14 +2,14 @@
 
 #include "CServerDriver.h"
 
-char g_ModulePath[2048U];
+char g_modulePath[2048U];
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID /* lpReserved */)
 {
     switch(ul_reason_for_call)
     {
         case DLL_PROCESS_ATTACH:
-            GetModuleFileNameA(hModule, g_ModulePath, 2048U);
+            GetModuleFileNameA(hModule, g_modulePath, 2048U);
             break;
         case DLL_THREAD_ATTACH: case DLL_THREAD_DETACH: case DLL_PROCESS_DETACH:
             break;
