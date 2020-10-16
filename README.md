@@ -2,11 +2,11 @@
 
 SteamVR driver for Kinect for XBox One / Kinect 2 for Windows.
 
-# Usage benefits
+## Usage benefits
 * No additional dependencies for SteamVR ([OpenVR InputEmulator](https://github.com/matzman666/OpenVR-InputEmulator) and others).
 * [Linear smoothing of movement](https://twitter.com/SDraw_/status/1231987403721756672). 
 
-# Installation
+## Installation
 * Install [Kinect for Windows Runtime 2.0](https://www.microsoft.com/en-us/download/details.aspx?id=44559)
 * Extract [latest release archive](../../releases/latest) to `<SteamVR_folder>/drivers`
 * Add line in section `steamvr` of `<Steam_folder>/config/steamvr.vrsettings` file:
@@ -14,7 +14,7 @@ SteamVR driver for Kinect for XBox One / Kinect 2 for Windows.
   "activateMultipleDrivers": true,
   ```
 
-# Calibration
+## Calibration
 * Launch `kinect_calibrator` from `<SteamVR_folder>/drivers/kinectV2/bin/win##` directory.
 * Allign base position using controllers to match virtual trackers with your hip and legs:
   * Left controller's touchpad/thumbstick: rotate left, rotate right, rotate up, rotate down. Press grip to reset rotation.
@@ -22,12 +22,12 @@ SteamVR driver for Kinect for XBox One / Kinect 2 for Windows.
     * If trigger is pressed: move forward, move backward.
 * Press application menu button or quit from SteamVR to save alligned base transformation.
 
-# Usage
+## Usage
 * Press **Ctrl-T** to disable/enable tracking.
   * Alternative way: send debug message `switch` to fake base station device.
 * By default only `SpineMid`, `AnkleLeft` and `AnkleRight` bones are interpreted as trackers. You can add/remove specific bones for/from tracking by editing [`resources/settings.xml`](../master/resources/settings.xml).
 
-# Building
+## Building
 * Install [Kinect for Windows SDK 2.0](https://www.microsoft.com/en-us/download/details.aspx?id=44561).
 * Clone repository using `git`.
 * Initialize submodules
