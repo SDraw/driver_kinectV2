@@ -1,4 +1,4 @@
-[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/I2I0XK1A)
+# Driver KinectV2 [![Build status](https://ci.appveyor.com/api/projects/status/1spgyg3xgdbacgj7?svg=true)](https://ci.appveyor.com/project/SDraw/driver-kinectv2) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 SteamVR driver for Kinect for XBox One / Kinect 2 for Windows.
 
