@@ -52,7 +52,7 @@ bool CKinectMonitor::Initialize()
         m_vrSystem = vr::VR_Init(&l_initError, vr::VRApplication_Overlay);
         if(l_initError == vr::VRInitError_None)
         {
-            vr::VROverlay()->CreateOverlay("monitor.kinect.main", "Kinect Calibrator", &m_overlay);
+            vr::VROverlay()->CreateOverlay("monitor.kinectV2.main", "KinectV2 Calibrator", &m_overlay);
 
             for(uint32_t i = 0U; i < vr::k_unMaxTrackedDeviceCount; i++)
             {

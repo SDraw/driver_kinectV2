@@ -8,19 +8,11 @@ CKinectHandler::CKinectHandler(const std::vector<size_t> &f_indexes)
     m_kinectSensor = nullptr;
     m_bodyFrameReader = nullptr;
 
-    for(size_t i = 0U; i < JointType_Count; i++)
-    {
-        m_jointUsed[i] = false;
-        m_jointFilters[i] = nullptr;
-    }
+    for(size_t i = 0U; i < JointType_Count; i++) m_jointFilters[i] = nullptr;
     for(auto l_index : f_indexes)
     {
         if(l_index >= JointType_Count) continue;
-        if(!m_jointUsed[l_index])
-        {
-            m_jointUsed[l_index] = true;
-            m_jointFilters[l_index] = new CJointFilter();
-        }
+        if(!m_jointFilters[l_index]) m_jointFilters[l_index] = new CJointFilter();
     }
 
     m_frameData = new FrameData();
@@ -33,6 +25,9 @@ CKinectHandler::CKinectHandler(const std::vector<size_t> &f_indexes)
 CKinectHandler::~CKinectHandler()
 {
     Cleanup();
+
+    delete m_frameData;
+    m_frameData = nullptr;
 }
 
 bool CKinectHandler::Initialize()
@@ -70,13 +65,9 @@ void CKinectHandler::Cleanup()
 {
     for(size_t i = 0U; i < JointType_Count; i++)
     {
-        m_jointUsed[i] = false;
         delete m_jointFilters[i];
         m_jointFilters[i] = nullptr;
     }
-
-    delete m_frameData;
-    m_frameData = nullptr;
 
     if(m_bodyFrameReader)
     {
@@ -142,7 +133,7 @@ void CKinectHandler::Update()
                                 {
                                     for(size_t k = 0U; k < JointType_Count; k++)
                                     {
-                                        if(m_jointUsed[k])
+                                        if(m_jointFilters[k])
                                         {
                                             m_jointFilters[k]->Update(l_joints[k]);
                                             const glm::vec3 &l_position = m_jointFilters[k]->GetFiltered();

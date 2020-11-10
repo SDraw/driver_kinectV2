@@ -6,7 +6,7 @@
 CKinectStation::CKinectStation(CServerDriver *f_server)
 {
     m_serverDriver = f_server;
-    m_serial.assign("KS-0000");
+    m_serial.assign("KS-20");
 }
 
 CKinectStation::~CKinectStation()

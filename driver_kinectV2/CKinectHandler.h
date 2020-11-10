@@ -18,7 +18,6 @@ class CKinectHandler final
     IKinectSensor *m_kinectSensor;
     IBodyFrameReader *m_bodyFrameReader;
 
-    bool m_jointUsed[JointType_Count];
     CJointFilter *m_jointFilters[JointType_Count];
     FrameData *m_frameData;
 
@@ -29,7 +28,7 @@ class CKinectHandler final
 
     void Cleanup();
 public:
-    CKinectHandler(const std::vector<size_t> &f_indexes);
+    explicit CKinectHandler(const std::vector<size_t> &f_indexes);
     ~CKinectHandler();
 
     bool Initialize();
