@@ -4,6 +4,28 @@ class CKinectConfig;
 
 class CKinectMonitor final
 {
+    enum PressState : unsigned char
+    {
+        PS_None = 0U,
+        PS_Single,
+        PS_Wait,
+        PS_Continuous
+    };
+    enum CircleQuadrant : unsigned char
+    {
+        CQ_Up = 0U,
+        CQ_Down,
+        CQ_Left,
+        CQ_Right,
+    };
+    struct PressInfo
+    {
+        vr::ETrackedControllerRole m_hand;
+        CircleQuadrant m_quadrant;
+        ULONGLONG m_tick;
+        PressState m_state;
+    };
+
     bool m_active;
 
     vr::IVRSystem *m_vrSystem;
@@ -17,6 +39,8 @@ class CKinectMonitor final
     CKinectConfig *m_kinectConfig;
     glm::vec3 m_basePosition;
     glm::quat m_baseRotation;
+
+    PressInfo m_lastPressInfo;
     bool m_triggerPressed;
 
     CKinectMonitor(const CKinectMonitor &that) = delete;

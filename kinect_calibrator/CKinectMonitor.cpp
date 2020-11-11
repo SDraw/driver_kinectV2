@@ -3,7 +3,7 @@
 #include "CKinectMonitor.h"
 #include "CKinectConfig.h"
 
-const char *g_notificationText = "Base calibration\nLeft touchpad: Rotate left/right and up/down\tRight touchpad: Move left/right, up/down and (hold trigger) forward/backward\tPress grip to reset rotation or position";
+const char *g_notificationText = "Base calibration\nLeft touchpad: Rotate L/R/U/D\tRight touchpad: Move L/R, U/D and (hold trigger) F/B\tGrip: reset rotation/position";
 const std::chrono::milliseconds g_threadDelay(11U);
 
 const float g_pi = glm::pi<float>();
@@ -13,16 +13,6 @@ const glm::vec3 g_axisY(0.f, 1.f, 0.f);
 const glm::vec3 g_axisYN(0.f, -1.f, 0.f);
 const glm::vec3 g_axisZ(0.f, 0.f, 1.f);
 const glm::vec3 g_axisZN(0.f, 0.f, -1.f);
-
-enum TouchpadQuadrant : unsigned char
-{
-    TQ_Right = 0U,
-    TQ_Up,
-    TQ_Left,
-    TQ_Down,
-
-    TQ_Unknown = 255U
-};
 
 CKinectMonitor::CKinectMonitor()
 {
@@ -37,6 +27,7 @@ CKinectMonitor::CKinectMonitor()
     m_kinectConfig = nullptr;
     m_basePosition = glm::vec3(0.f);
     m_baseRotation = glm::quat(1.f, 0.f, 0.f, 0.f);
+    m_lastPressInfo = { vr::TrackedControllerRole_Invalid, CQ_Up, 0U, PS_None };
     m_triggerPressed = false;
 }
 
@@ -110,8 +101,6 @@ void CKinectMonitor::Terminate()
 
 bool CKinectMonitor::DoPulse()
 {
-    bool l_update = false;
-
     while(m_vrSystem->PollNextEvent(&m_event, sizeof(vr::VREvent_t)))
     {
         switch(m_event.eventType)
@@ -128,62 +117,24 @@ bool CKinectMonitor::DoPulse()
                 {
                     case vr::k_EButton_SteamVR_Touchpad:
                     {
-                        vr::VRControllerState_t l_state;
-                        m_vrSystem->GetControllerState(m_event.trackedDeviceIndex, &l_state, sizeof(vr::VRControllerState_t));
-
-                        const float l_theta = atan2f(l_state.rAxis[0U].y, l_state.rAxis[0U].x);
-                        const float l_absTheta = abs(l_theta);
-
-                        TouchpadQuadrant l_quad = TQ_Unknown;
-                        if((l_absTheta >= 0.f) && (l_absTheta <= g_pi*0.25f)) l_quad = TQ_Right;
-                        else
+                        if((m_event.trackedDeviceIndex == m_leftHand) || (m_event.trackedDeviceIndex == m_rightHand))
                         {
-                            if((l_absTheta >= g_pi*0.75) && (l_absTheta <= g_pi)) l_quad = TQ_Left;
-                            else l_quad = (l_theta > 0.f) ? TQ_Up : TQ_Down;
-                        }
+                            vr::VRControllerState_t l_state;
+                            m_vrSystem->GetControllerState(m_event.trackedDeviceIndex, &l_state, sizeof(vr::VRControllerState_t));
 
-                        // Left hand - rotation
-                        if(m_event.trackedDeviceIndex == m_leftHand)
-                        {
-                            switch(l_quad)
+                            m_lastPressInfo.m_hand = (m_event.trackedDeviceIndex == m_leftHand) ? vr::TrackedControllerRole_LeftHand : vr::TrackedControllerRole_RightHand;
+
+                            const float l_theta = atan2f(l_state.rAxis[0U].y, l_state.rAxis[0U].x);
+                            const float l_absTheta = abs(l_theta);
+                            if((l_absTheta >= 0.f) && (l_absTheta <= g_pi*0.25f)) m_lastPressInfo.m_quadrant = CQ_Right;
+                            else
                             {
-                                case TQ_Right:
-                                    m_baseRotation = glm::rotate(m_baseRotation, g_pi / 180.f, g_axisY);
-                                    break;
-                                case TQ_Left:
-                                    m_baseRotation = glm::rotate(m_baseRotation, -g_pi / 180.f, g_axisY);
-                                    break;
-                                case TQ_Up:
-                                    m_baseRotation = glm::rotate(m_baseRotation, g_pi / 180.f, g_axisX);
-                                    break;
-                                case TQ_Down:
-                                    m_baseRotation = glm::rotate(m_baseRotation, -g_pi / 180.f, g_axisX);
-                                    break;
+                                if((l_absTheta >= g_pi*0.75) && (l_absTheta <= g_pi)) m_lastPressInfo.m_quadrant = CQ_Left;
+                                else m_lastPressInfo.m_quadrant = (l_theta > 0.f) ? CQ_Up : CQ_Down;
                             }
 
-                            l_update = true;
-                        }
-
-                        // Right hand - position
-                        if(m_event.trackedDeviceIndex == m_rightHand)
-                        {
-                            switch(l_quad)
-                            {
-                                case TQ_Right:
-                                    m_basePosition += (m_baseRotation*g_axisX) * 0.01f;
-                                    break;
-                                case TQ_Left:
-                                    m_basePosition += (m_baseRotation*g_axisXN)* 0.01f;
-                                    break;
-                                case TQ_Up:
-                                    m_basePosition += (m_baseRotation*(m_triggerPressed ? g_axisZN : g_axisY)) * 0.01f;
-                                    break;
-                                case TQ_Down:
-                                    m_basePosition += (m_baseRotation*(m_triggerPressed ? g_axisZ : g_axisYN)) * 0.01f;
-                                    break;
-                            }
-
-                            l_update = true;
+                            m_lastPressInfo.m_tick = GetTickCount();
+                            m_lastPressInfo.m_state = PS_Single;
                         }
                     } break;
 
@@ -194,10 +145,18 @@ bool CKinectMonitor::DoPulse()
 
                     case vr::k_EButton_Grip:
                     {
-                        if(m_event.trackedDeviceIndex == m_leftHand) m_baseRotation = glm::quat(1.f, 0.f, 0.f, 0.f);
-                        else if(m_event.trackedDeviceIndex == m_rightHand) m_basePosition = glm::vec3(0.f);
-
-                        l_update = true;
+                        if(m_event.trackedDeviceIndex == m_leftHand)
+                        {
+                            m_baseRotation = glm::quat(1.f, 0.f, 0.f, 0.f);
+                            m_kinectConfig->SetBaseRotation(m_baseRotation);
+                            SendCalibration();
+                        }
+                        else if(m_event.trackedDeviceIndex == m_rightHand)
+                        {
+                            m_basePosition = glm::vec3(0.f);
+                            m_kinectConfig->SetBasePosition(m_basePosition);
+                            SendCalibration();
+                        }
                     } break;
 
                     case vr::k_EButton_ApplicationMenu:
@@ -215,6 +174,28 @@ bool CKinectMonitor::DoPulse()
                         case vr::k_EButton_SteamVR_Trigger:
                             m_triggerPressed = false;
                             break;
+                        case vr::k_EButton_SteamVR_Touchpad:
+                        {
+                            if(m_lastPressInfo.m_hand == vr::TrackedControllerRole_RightHand)
+                            {
+                                m_lastPressInfo.m_hand = vr::TrackedControllerRole_Invalid;
+                                m_lastPressInfo.m_tick = 0U;
+                                m_lastPressInfo.m_state = PS_None;
+                            }
+                        } break;
+                    }
+                }
+                if(m_event.trackedDeviceIndex == m_leftHand)
+                {
+                    if(m_event.data.controller.button == vr::k_EButton_SteamVR_Touchpad)
+                    {
+                        if(m_lastPressInfo.m_hand == vr::TrackedControllerRole_LeftHand)
+                        {
+                            m_lastPressInfo.m_hand = vr::TrackedControllerRole_Invalid;
+                            m_lastPressInfo.m_tick = 0U;
+                            m_lastPressInfo.m_quadrant = CQ_Up;
+                            m_lastPressInfo.m_state = PS_None;
+                        }
                     }
                 }
             } break;
@@ -225,11 +206,85 @@ bool CKinectMonitor::DoPulse()
         }
     }
 
-    if(l_update)
+    if(m_lastPressInfo.m_hand != vr::TrackedControllerRole_Invalid)
     {
-        m_kinectConfig->SetBasePosition(m_basePosition);
-        m_kinectConfig->SetBaseRotation(m_baseRotation);
-        SendCalibration();
+        bool l_update = false;
+
+        switch(m_lastPressInfo.m_state)
+        {
+            case PS_Single:
+            {
+                m_lastPressInfo.m_state = PS_Wait;
+                m_lastPressInfo.m_tick = GetTickCount64();
+                l_update = true;
+            } break;
+            case PS_Wait:
+            {
+                ULONGLONG l_tick = GetTickCount64();
+                if(l_tick - m_lastPressInfo.m_tick > 500U) // If hold 500ms
+                {
+                    m_lastPressInfo.m_state = PS_Continuous;
+                    m_lastPressInfo.m_tick = l_tick;
+                    l_update = true;
+                }
+            } break;
+            case PS_Continuous:
+            {
+                ULONGLONG l_tick = GetTickCount64();
+                if(l_tick - m_lastPressInfo.m_tick > 20U) // Step every 20ms
+                {
+                    m_lastPressInfo.m_tick = l_tick;
+                    l_update = true;
+                }
+            } break;
+        }
+
+        if(l_update)
+        {
+            switch(m_lastPressInfo.m_hand)
+            {
+                case vr::TrackedControllerRole_LeftHand:
+                {
+                    switch(m_lastPressInfo.m_quadrant)
+                    {
+                        case CQ_Right:
+                            m_baseRotation = glm::rotate(m_baseRotation, -g_pi / 180.f, g_axisY);
+                            break;
+                        case CQ_Left:
+                            m_baseRotation = glm::rotate(m_baseRotation, g_pi / 180.f, g_axisY);
+                            break;
+                        case CQ_Up:
+                            m_baseRotation = glm::rotate(m_baseRotation, g_pi / 180.f, g_axisX);
+                            break;
+                        case CQ_Down:
+                            m_baseRotation = glm::rotate(m_baseRotation, -g_pi / 180.f, g_axisX);
+                            break;
+                    }
+                } break;
+                case vr::TrackedControllerRole_RightHand:
+                {
+                    switch(m_lastPressInfo.m_quadrant)
+                    {
+                        case CQ_Right:
+                            m_basePosition += (m_baseRotation*g_axisX) * 0.01f;
+                            break;
+                        case CQ_Left:
+                            m_basePosition += (m_baseRotation*g_axisXN)* 0.01f;
+                            break;
+                        case CQ_Up:
+                            m_basePosition += (m_baseRotation*(m_triggerPressed ? g_axisZN : g_axisY)) * 0.01f;
+                            break;
+                        case CQ_Down:
+                            m_basePosition += (m_baseRotation*(m_triggerPressed ? g_axisZ : g_axisYN)) * 0.01f;
+                            break;
+                    }
+                }
+            }
+
+            m_kinectConfig->SetBasePosition(m_basePosition);
+            m_kinectConfig->SetBaseRotation(m_baseRotation);
+            SendCalibration();
+        }
     }
 
     if(m_leftHand == vr::k_unTrackedDeviceIndexInvalid) m_leftHand = m_vrSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
