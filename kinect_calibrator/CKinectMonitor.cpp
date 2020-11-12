@@ -118,7 +118,7 @@ bool CKinectMonitor::DoPulse()
             {
                 switch(m_event.data.controller.button)
                 {
-                    case vr::k_EButton_SteamVR_Touchpad: case vr::k_EButton_Axis3:
+                    case vr::k_EButton_SteamVR_Touchpad:
                     {
                         if((m_event.trackedDeviceIndex == m_leftHand) || (m_event.trackedDeviceIndex == m_rightHand))
                         {
