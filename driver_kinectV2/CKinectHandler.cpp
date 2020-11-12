@@ -97,7 +97,7 @@ bool CKinectHandler::IsPaused() const
 
 void CKinectHandler::SetPaused(bool f_state)
 {
-    if(m_kinectSensor && m_bodyFrameReader) m_paused = f_state;
+    m_paused = f_state;
 }
 
 void CKinectHandler::Update()

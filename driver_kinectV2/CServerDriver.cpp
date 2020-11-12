@@ -204,7 +204,7 @@ void CServerDriver::KinectProcess()
 {
     const std::chrono::milliseconds l_threadDelay(33U);
 
-    const bool l_initialized = m_kinectHandler->Initialize();
+    bool l_initialized = m_kinectHandler->Initialize();
     while(m_kinectActive)
     {
         if(l_initialized)
@@ -213,6 +213,7 @@ void CServerDriver::KinectProcess()
             m_kinectHandler->Update();
             m_kinectLock.unlock();
         }
+        else l_initialized = m_kinectHandler->Initialize();
 
         std::this_thread::sleep_for(l_threadDelay);
     }

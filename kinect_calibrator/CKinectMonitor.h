@@ -13,15 +13,15 @@ class CKinectMonitor final
     };
     enum CircleQuadrant : unsigned char
     {
-        CQ_Up = 0U,
-        CQ_Down,
+        CQ_Right = 0U,
+        CQ_Up,
         CQ_Left,
-        CQ_Right,
+        CQ_Down,
     };
     struct PressInfo
     {
         vr::ETrackedControllerRole m_hand;
-        CircleQuadrant m_quadrant;
+        unsigned char m_quadrant;
         ULONGLONG m_tick;
         PressState m_state;
     };

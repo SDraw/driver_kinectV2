@@ -7,6 +7,9 @@ const char *g_notificationText = "Base calibration\nLeft touchpad: Rotate L/R/U/
 const std::chrono::milliseconds g_threadDelay(11U);
 
 const float g_pi = glm::pi<float>();
+const float g_pi2 = g_pi*2.f;
+const float g_piHalf = g_pi * 0.5f;
+const float g_piQuarter = g_pi * 0.25f;
 const glm::vec3 g_axisX(1.f, 0.f, 0.f);
 const glm::vec3 g_axisXN(-1.f, 0.f, 0.f);
 const glm::vec3 g_axisY(0.f, 1.f, 0.f);
@@ -27,7 +30,7 @@ CKinectMonitor::CKinectMonitor()
     m_kinectConfig = nullptr;
     m_basePosition = glm::vec3(0.f);
     m_baseRotation = glm::quat(1.f, 0.f, 0.f, 0.f);
-    m_lastPressInfo = { vr::TrackedControllerRole_Invalid, CQ_Up, 0U, PS_None };
+    m_lastPressInfo = { vr::TrackedControllerRole_Invalid, CQ_Right, 0U, PS_None };
     m_triggerPressed = false;
 }
 
@@ -115,24 +118,20 @@ bool CKinectMonitor::DoPulse()
             {
                 switch(m_event.data.controller.button)
                 {
-                    case vr::k_EButton_SteamVR_Touchpad:
+                    case vr::k_EButton_SteamVR_Touchpad: case vr::k_EButton_Axis3:
                     {
                         if((m_event.trackedDeviceIndex == m_leftHand) || (m_event.trackedDeviceIndex == m_rightHand))
                         {
                             vr::VRControllerState_t l_state;
                             m_vrSystem->GetControllerState(m_event.trackedDeviceIndex, &l_state, sizeof(vr::VRControllerState_t));
 
+                            float l_theta = std::atan2f(l_state.rAxis[0U].y, l_state.rAxis[0U].x);
+                            if(l_theta < 0.f) l_theta = g_pi2 + l_theta;
+                            l_theta += g_piQuarter;
+                            l_theta = std::fmod(l_theta, g_pi2);
+                            m_lastPressInfo.m_quadrant = static_cast<unsigned char>(std::floorf((l_theta - std::fmod(l_theta, g_piHalf)) / g_piHalf));
+
                             m_lastPressInfo.m_hand = (m_event.trackedDeviceIndex == m_leftHand) ? vr::TrackedControllerRole_LeftHand : vr::TrackedControllerRole_RightHand;
-
-                            const float l_theta = atan2f(l_state.rAxis[0U].y, l_state.rAxis[0U].x);
-                            const float l_absTheta = abs(l_theta);
-                            if((l_absTheta >= 0.f) && (l_absTheta <= g_pi*0.25f)) m_lastPressInfo.m_quadrant = CQ_Right;
-                            else
-                            {
-                                if((l_absTheta >= g_pi*0.75) && (l_absTheta <= g_pi)) m_lastPressInfo.m_quadrant = CQ_Left;
-                                else m_lastPressInfo.m_quadrant = (l_theta > 0.f) ? CQ_Up : CQ_Down;
-                            }
-
                             m_lastPressInfo.m_tick = GetTickCount();
                             m_lastPressInfo.m_state = PS_Single;
                         }
@@ -174,7 +173,7 @@ bool CKinectMonitor::DoPulse()
                         case vr::k_EButton_SteamVR_Trigger:
                             m_triggerPressed = false;
                             break;
-                        case vr::k_EButton_SteamVR_Touchpad:
+                        case vr::k_EButton_SteamVR_Touchpad: case vr::k_EButton_Axis3:
                         {
                             if(m_lastPressInfo.m_hand == vr::TrackedControllerRole_RightHand)
                             {
