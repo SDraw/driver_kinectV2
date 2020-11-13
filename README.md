@@ -4,7 +4,8 @@ SteamVR driver for Kinect for XBox One / Kinect 2 for Windows.
 
 ## Usage benefits
 * No additional dependencies for SteamVR ([OpenVR InputEmulator](https://github.com/matzman666/OpenVR-InputEmulator) and others).
-* [Linear smoothing of movement](https://twitter.com/SDraw_/status/1231987403721756672). 
+* [Linear smoothing of movement](https://twitter.com/SDraw_/status/1231987403721756672).
+* Configurable amount of trackers assigned to bones.
 
 ## Installation
 * Install [Kinect for Windows Runtime 2.0](https://www.microsoft.com/en-us/download/details.aspx?id=44559)
