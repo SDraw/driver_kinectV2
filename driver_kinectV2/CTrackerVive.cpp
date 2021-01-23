@@ -56,7 +56,65 @@ void CTrackerVive::SetupProperties()
     vr::VRProperties()->SetBoolProperty(m_propertyHandle, vr::Prop_Identifiable_Bool, false);
     vr::VRProperties()->SetBoolProperty(m_propertyHandle, vr::Prop_Firmware_RemindUpdate_Bool, false);
     vr::VRProperties()->SetInt32Property(m_propertyHandle, vr::Prop_ControllerRoleHint_Int32, vr::TrackedControllerRole_Invalid);
-    vr::VRProperties()->SetStringProperty(m_propertyHandle, vr::Prop_ControllerType_String, "vive_tracker_handed");
+
+    switch(m_index)
+    {
+        case _JointType::JointType_SpineBase:
+        case _JointType::JointType_SpineMid:
+        case _JointType::JointType_HipLeft:
+        case _JointType::JointType_HipRight:
+            vr::VRProperties()->SetStringProperty(m_propertyHandle, vr::Prop_ControllerType_String, "vive_tracker_waist");
+            break;
+
+        case _JointType::JointType_SpineShoulder:
+            vr::VRProperties()->SetStringProperty(m_propertyHandle, vr::Prop_ControllerType_String, "vive_tracker_chest");
+            break;
+
+        case _JointType::JointType_ShoulderLeft:
+            vr::VRProperties()->SetStringProperty(m_propertyHandle, vr::Prop_ControllerType_String, "vive_tracker_left_shoulder");
+            break;
+
+        case _JointType::JointType_ShoulderRight:
+            vr::VRProperties()->SetStringProperty(m_propertyHandle, vr::Prop_ControllerType_String, "vive_tracker_right_shoulder");
+            break;
+
+        case _JointType::JointType_ElbowLeft:
+            vr::VRProperties()->SetStringProperty(m_propertyHandle, vr::Prop_ControllerType_String, "vive_tracker_left_elbow");
+            break;
+        case _JointType::JointType_ElbowRight:
+            vr::VRProperties()->SetStringProperty(m_propertyHandle, vr::Prop_ControllerType_String, "vive_tracker_right_elbow");
+            break;
+
+        case _JointType::JointType_WristLeft:
+        case _JointType::JointType_HandLeft:
+        case _JointType::JointType_WristRight:
+        case _JointType::JointType_HandRight:
+            vr::VRProperties()->SetStringProperty(m_propertyHandle, vr::Prop_ControllerType_String, "vive_tracker_handed");
+            break;
+
+        case _JointType::JointType_KneeLeft:
+            vr::VRProperties()->SetStringProperty(m_propertyHandle, vr::Prop_ControllerType_String, "vive_tracker_left_knee");
+            break;
+
+        case _JointType::JointType_KneeRight:
+            vr::VRProperties()->SetStringProperty(m_propertyHandle, vr::Prop_ControllerType_String, "vive_tracker_right_knee");
+            break;
+
+        case _JointType::JointType_AnkleLeft:
+        case _JointType::JointType_FootLeft:
+            vr::VRProperties()->SetStringProperty(m_propertyHandle, vr::Prop_ControllerType_String, "vive_tracker_left_foot");
+            break;
+
+        case _JointType::JointType_AnkleRight:
+        case _JointType::JointType_FootRight:
+            vr::VRProperties()->SetStringProperty(m_propertyHandle, vr::Prop_ControllerType_String, "vive_tracker_right_foot");
+            break;
+
+        default:
+            vr::VRProperties()->SetStringProperty(m_propertyHandle, vr::Prop_ControllerType_String, "vive_tracker_none");
+            break;
+    }
+
     vr::VRProperties()->SetInt32Property(m_propertyHandle, vr::Prop_ControllerHandSelectionPriority_Int32, -1);
     vr::VRProperties()->SetStringProperty(m_propertyHandle, vr::Prop_NamedIconPathDeviceOff_String, "{htc}/icons/tracker_status_off.png");
     vr::VRProperties()->SetStringProperty(m_propertyHandle, vr::Prop_NamedIconPathDeviceSearching_String, "{htc}/icons/tracker_status_searching.gif");

@@ -6,15 +6,32 @@
 
 const std::vector<std::string> g_settingNames
 {
-    "basePosition", "baseRotation", "trackers"
+    "basePosition", "baseRotation", "interpolation", "trackers"
 };
 enum SettingIndex : size_t
 {
     SI_BasePosition = 0U,
     SI_BaseRotation,
+    SI_Interpolation,
     SI_Trackers,
 
     SI_Count
+};
+
+const std::vector<std::string> g_interpolationTypes
+{
+    "linear", "quadratic", "cubic", "quartic", "quintic", "exponential", "sine", "circular"
+};
+enum FrameInterpolation : unsigned char
+{
+    FI_Linear = 0U,
+    FI_Quadratic,
+    FI_Cubic,
+    FI_Quartic,
+    FI_Quintic,
+    FI_Exponential,
+    FI_Sine,
+    FI_Circular
 };
 
 const std::vector<std::string> g_boneNames
@@ -39,6 +56,7 @@ CKinectConfig::CKinectConfig(const char *f_path)
 
     m_basePosition = glm::vec3(0.f);
     m_baseRotation = glm::quat(1.f, 0.f, 0.f, 0.f);
+    m_interpolation = FrameInterpolation::FI_Linear;
 }
 
 CKinectConfig::~CKinectConfig()
@@ -71,6 +89,11 @@ void CKinectConfig::Load()
                             std::stringstream l_stream(l_attribValue.as_string("0.0 0.0 0.0 1.0"));
                             l_stream >> m_baseRotation.x >> m_baseRotation.y >> m_baseRotation.z >> m_baseRotation.w;
                         } break;
+                        case SettingIndex::SI_Interpolation:
+                        {
+                            size_t l_interpolation = ReadEnumVector(l_attribValue.as_string(), g_interpolationTypes);
+                            if(l_interpolation != std::numeric_limits<size_t>::max()) m_interpolation = static_cast<unsigned char>(l_interpolation);
+                        } break;
                         case SettingIndex::SI_Trackers:
                         {
                             for(pugi::xml_node l_trackerNode = l_node.child("tracker"); l_trackerNode; l_trackerNode = l_trackerNode.next_sibling("tracker"))
@@ -95,8 +118,8 @@ void CKinectConfig::Load()
     delete l_document;
 
     // Remove duplicated bones
-    std::sort(m_trackersData.begin(), m_trackersData.end(),CompareTrackerData_Sort);
-    m_trackersData.erase(std::unique(m_trackersData.begin(), m_trackersData.end(),CompareTrackerData_Unique), m_trackersData.end());
+    std::sort(m_trackersData.begin(), m_trackersData.end(), CompareTrackerData_Sort);
+    m_trackersData.erase(std::unique(m_trackersData.begin(), m_trackersData.end(), CompareTrackerData_Unique), m_trackersData.end());
 
     // Add default tracked bones if nothing is parsed
     if(m_trackersData.empty())
@@ -146,6 +169,9 @@ void CKinectConfig::Save()
                             }
                             l_valueAttrib.set_value(l_rot.c_str());
                         } break;
+                        case SettingIndex::SI_Interpolation:
+                            l_valueAttrib.set_value(g_interpolationTypes[m_interpolation].c_str());
+                            break;
                         case SettingIndex::SI_Trackers:
                         {
                             l_valueAttrib.set_value("");

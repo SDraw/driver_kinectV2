@@ -8,10 +8,10 @@ CKinectHandler::CKinectHandler(const std::vector<size_t> &f_indexes)
     m_kinectSensor = nullptr;
     m_bodyFrameReader = nullptr;
 
-    for(size_t i = 0U; i < JointType_Count; i++) m_jointFilters[i] = nullptr;
+    for(size_t i = 0U; i < _JointType::JointType_Count; i++) m_jointFilters[i] = nullptr;
     for(auto l_index : f_indexes)
     {
-        if(l_index >= JointType_Count) continue;
+        if(l_index >= _JointType::JointType_Count) continue;
         if(!m_jointFilters[l_index]) m_jointFilters[l_index] = new CJointFilter();
     }
 
@@ -63,7 +63,7 @@ void CKinectHandler::Terminate()
 
 void CKinectHandler::Cleanup()
 {
-    for(size_t i = 0U; i < JointType_Count; i++)
+    for(size_t i = 0U; i < _JointType::JointType_Count; i++)
     {
         delete m_jointFilters[i];
         m_jointFilters[i] = nullptr;
@@ -127,11 +127,11 @@ void CKinectHandler::Update()
                         {
                             if(l_isTracked > 0U)
                             {
-                                Joint l_joints[JointType_Count];
-                                JointOrientation l_jointOrientations[JointType_Count];
-                                if((l_bodies[i]->GetJoints(JointType_Count, l_joints) >= S_OK) && (l_bodies[i]->GetJointOrientations(JointType_Count, l_jointOrientations) >= S_OK))
+                                Joint l_joints[_JointType::JointType_Count];
+                                JointOrientation l_jointOrientations[_JointType::JointType_Count];
+                                if((l_bodies[i]->GetJoints(_JointType::JointType_Count, l_joints) >= S_OK) && (l_bodies[i]->GetJointOrientations(JointType_Count, l_jointOrientations) >= S_OK))
                                 {
-                                    for(size_t k = 0U; k < JointType_Count; k++)
+                                    for(size_t k = 0U; k < _JointType::JointType_Count; k++)
                                     {
                                         if(m_jointFilters[k])
                                         {
