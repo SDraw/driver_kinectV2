@@ -3,17 +3,12 @@
 #include "CKinectHandler.h"
 #include "CJointFilter.h"
 
-CKinectHandler::CKinectHandler(const std::vector<size_t> &f_indexes)
+CKinectHandler::CKinectHandler()
 {
     m_kinectSensor = nullptr;
     m_bodyFrameReader = nullptr;
 
-    for(size_t i = 0U; i < _JointType::JointType_Count; i++) m_jointFilters[i] = nullptr;
-    for(auto l_index : f_indexes)
-    {
-        if(l_index >= _JointType::JointType_Count) continue;
-        if(!m_jointFilters[l_index]) m_jointFilters[l_index] = new CJointFilter();
-    }
+    for(size_t i = 0U; i < _JointType::JointType_Count; i++) m_jointFilters[i] = new CJointFilter();
 
     m_frameData = new FrameData();
     m_frameData->m_frameTime = 0;
@@ -133,24 +128,21 @@ void CKinectHandler::Update()
                                 {
                                     for(size_t k = 0U; k < _JointType::JointType_Count; k++)
                                     {
-                                        if(m_jointFilters[k])
-                                        {
-                                            m_jointFilters[k]->Update(l_joints[k]);
-                                            const glm::vec3 &l_position = m_jointFilters[k]->GetFiltered();
-                                            JointData &l_jointData = m_frameData->m_joints[k];
-                                            l_jointData.x = l_position.x;
-                                            l_jointData.y = l_position.y;
-                                            l_jointData.z = l_position.z;
+                                        m_jointFilters[k]->Update(l_joints[k]);
+                                        const glm::vec3 &l_position = m_jointFilters[k]->GetFiltered();
+                                        JointData &l_jointData = m_frameData->m_joints[k];
+                                        l_jointData.x = l_position.x;
+                                        l_jointData.y = l_position.y;
+                                        l_jointData.z = l_position.z;
 
-                                            const Vector4 &l_kinectRotation = l_jointOrientations[k].Orientation;
-                                            const glm::quat l_newRotation(l_kinectRotation.w, l_kinectRotation.x, l_kinectRotation.y, l_kinectRotation.z);
-                                            const glm::quat l_oldRotation(l_jointData.rw, l_jointData.rx, l_jointData.ry, l_jointData.rz);
-                                            const glm::quat l_smoothedRotation = glm::slerp(l_oldRotation, l_newRotation, 0.75f);
-                                            l_jointData.rx = l_smoothedRotation.x;
-                                            l_jointData.ry = l_smoothedRotation.y;
-                                            l_jointData.rz = l_smoothedRotation.z;
-                                            l_jointData.rw = l_smoothedRotation.w;
-                                        }
+                                        const Vector4 &l_kinectRotation = l_jointOrientations[k].Orientation;
+                                        const glm::quat l_newRotation(l_kinectRotation.w, l_kinectRotation.x, l_kinectRotation.y, l_kinectRotation.z);
+                                        const glm::quat l_oldRotation(l_jointData.rw, l_jointData.rx, l_jointData.ry, l_jointData.rz);
+                                        const glm::quat l_smoothedRotation = glm::slerp(l_oldRotation, l_newRotation, 0.75f);
+                                        l_jointData.rx = l_smoothedRotation.x;
+                                        l_jointData.ry = l_smoothedRotation.y;
+                                        l_jointData.rz = l_smoothedRotation.z;
+                                        l_jointData.rw = l_smoothedRotation.w;
                                     }
                                 }
 

@@ -18,7 +18,13 @@ class CServerDriver final : public vr::IServerTrackedDeviceProvider
     CEmulatedDevice *m_kinectStation;
     std::vector<CEmulatedDevice*> m_trackers;
 
-    bool m_hotkeyState;
+    glm::vec3 m_basePosition;
+    glm::quat m_baseRotation;
+    bool m_trackingState;
+    unsigned char m_interpolation;
+
+    ULONGLONG m_dashboardLaunchTick;
+    bool m_dashboardLaunched;
 
     CServerDriver(const CServerDriver &that) = delete;
     CServerDriver& operator=(const CServerDriver &that) = delete;
