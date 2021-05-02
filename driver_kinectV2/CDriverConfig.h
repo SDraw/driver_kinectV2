@@ -5,6 +5,7 @@ class CDriverConfig final
     static glm::vec3 ms_basePosition;
     static glm::quat ms_baseRotation;
     static unsigned char ms_interpolation;
+    static bool ms_trackingState;
     static std::vector<size_t> ms_boneIndexes;
 public:
     enum FrameInterpolation : unsigned char
@@ -25,4 +26,5 @@ public:
     static const glm::quat& GetBaseRotation();
     static unsigned char GetInterpolation();
     static const std::vector<size_t>& GetBoneIndexes();
+    static bool GetTrackingState();
 };
