@@ -41,7 +41,9 @@ const std::string g_interpolationNames[]
 enum SettingsButton : size_t
 {
     SB_StartCalibration = 0U,
-    SB_ToggleTracking
+    SB_ToggleTracking,
+
+    SB_Count
 };
 
 const sf::Color g_untoggledColor(32, 32, 32, 255);
@@ -82,6 +84,7 @@ GuiManager::GuiManager(Core *f_core)
     ImGui::GetStyle().FrameRounding = 5.0f;
 
     ImGui::GetStyle().Colors[ImGuiCol_TitleBg] = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
+    ImGui::GetStyle().Colors[ImGuiCol_TitleBgActive] = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
 
     // Change font
     ImGui::GetIO().Fonts->AddFontFromFileTTF("../../resources/fonts/Hack-Regular.ttf", 14.0f);
@@ -136,13 +139,13 @@ GuiManager::GuiManager(Core *f_core)
 
     m_settingsButtons.push_back(new GuiButton("Start calibration"));
     m_settingsButtons[SettingsButton::SB_StartCalibration]->SetPosition(sf::Vector2f(16.f, 48.f));
-    m_settingsButtons[SettingsButton::SB_StartCalibration]->SetSize(sf::Vector2f(278.f, 32.f));
+    m_settingsButtons[SettingsButton::SB_StartCalibration]->SetSize(sf::Vector2f(294.f, 32.f));
     m_settingsButtons[SettingsButton::SB_StartCalibration]->SetClickCallback(std::bind(&GuiManager::OnCalibrationStart, this, std::placeholders::_1));
     m_settingsWindow->Add(m_settingsButtons[SettingsButton::SB_StartCalibration]);
 
     m_settingsButtons.push_back(new GuiButton("Toggle tracking"));
     m_settingsButtons[SettingsButton::SB_ToggleTracking]->SetPosition(sf::Vector2f(16.f, 88.f));
-    m_settingsButtons[SettingsButton::SB_ToggleTracking]->SetSize(sf::Vector2f(278.f, 32.f));
+    m_settingsButtons[SettingsButton::SB_ToggleTracking]->SetSize(sf::Vector2f(294.f, 32.f));
     m_settingsButtons[SettingsButton::SB_ToggleTracking]->SetColor(m_core->GetConfigManager()->GetTrackingState() ? g_activeColor : g_inactiveColor);
     m_settingsButtons[SettingsButton::SB_ToggleTracking]->SetClickCallback(std::bind(&GuiManager::OnTrackingToggle, this, std::placeholders::_1));
     m_settingsWindow->Add(m_settingsButtons[SettingsButton::SB_ToggleTracking]);
@@ -167,19 +170,38 @@ GuiManager::GuiManager(Core *f_core)
     std::string l_status("Kinect relay device: ");
     l_status.append(m_core->GetVRManager()->IsKinectDevicePresent() ? "Present" : "Not found");
     m_deviceStateButton = new GuiButton(l_status);
-    m_deviceStateButton->SetSize(sf::Vector2f(278.f, 32.f));
+    m_deviceStateButton->SetSize(sf::Vector2f(294.f, 32.f));
     m_deviceStateButton->SetColor(m_core->GetVRManager()->IsKinectDevicePresent() ? g_activeColor : g_inactiveColor);
     m_settingsWindow->Add(m_deviceStateButton);
 }
 GuiManager::~GuiManager()
 {
-    ImGui::SFML::Shutdown();
-    delete m_renderTexture;
-    /*m_trackersButtons.clear();
-    m_calibrationLabels.clear();
-    m_calibrationFields.clear();
+    // Settings
+    delete m_deviceStateButton;
+    delete m_deviceSeparator;
+    for(size_t i = 0U; i < 8U; i++) delete m_interpolationButtons[i];
+    m_interpolationButtons.clear();
+    delete m_interpolationText;
+    delete m_settingsSeparator;
+    delete m_settingsWindow;
+    for(size_t i = 0U; i < SettingsButton::SB_Count; i++) delete m_settingsButtons[i];
     m_settingsButtons.clear();
-    m_interpolationButtons.clear();*/
+
+    // Calibration
+    for(size_t i = 0; i < 7; i++) delete m_calibrationFields[i];
+    m_calibrationFields.clear();
+    delete m_calibrationWindow;
+
+    // Trackers toggle
+    for(size_t i = 0U; i < 25U; i++) delete m_trackersButtons[i];
+    m_trackersButtons.clear();
+    delete m_trackersWindow;
+
+    // Screen
+    delete m_screen;
+    ImGui::SFML::Shutdown();
+
+    delete m_renderTexture;
 }
 
 void GuiManager::Render()

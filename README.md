@@ -1,4 +1,4 @@
-# Driver KinectV2 [![Build status](https://ci.appveyor.com/api/projects/status/1spgyg3xgdbacgj7?svg=true)](https://ci.appveyor.com/project/SDraw/driver-kinectv2) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+# Driver KinectV2 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 SteamVR driver for Kinect for XBox One / Kinect 2 for Windows.
 
@@ -8,7 +8,7 @@ SteamVR driver for Kinect for XBox One / Kinect 2 for Windows.
 * No additional dependencies for SteamVR.
 * Configurable motion smoothing.
 * Configurable amount of trackers assigned to bones.
-* Works on Windows 7, Windows 8/8.1 and Windows 10.
+* Works on Windows 8/8.1 and Windows 10.
 
 ## Installation
 * Install [Kinect for Windows Runtime 2.0](https://www.microsoft.com/en-us/download/details.aspx?id=44559) or [Kinect for Windows SDK 2.0](https://www.microsoft.com/en-us/download/details.aspx?id=44561).

@@ -1,0 +1,6 @@
+{
+	"alwaysActivate": true,
+	"name" : "kinectV2",
+	"directory" : "",
+	"resourceOnly" : false
+}
