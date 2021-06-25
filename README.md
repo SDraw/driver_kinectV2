@@ -35,7 +35,7 @@ Open `KinectV2 Dashboard` from SteamVR dashboard to gain access to available set
   
 ## Usage with desktop version of dashboard
 If you're owner of AMD GPU with latest drivers, you're in luck. Latest drivers breaks functionality of OpenGL.  
-If `KinectV1 Dashboard` overlay is empty, you have to use desktop version of dashboard included in release.  
+If `KinectV2 Dashboard` overlay is empty, you have to use desktop version of dashboard included in release.  
 Before you launch `kinect_dash_desktop` from `SteamVR/drivers/kinectV2/bin/win##`, you have to kill `kinect_dash` process from task manager/CMD/PowerShell console.
 
 ## Building
