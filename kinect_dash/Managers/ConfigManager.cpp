@@ -33,7 +33,7 @@ const std::vector<std::string> g_boneNames
     "HandTipLeft", "ThumbLeft",
     "HandTipRight", "ThumbRight"
 };
-const size_t g_bonesCount = g_boneNames.size();
+extern const size_t g_bonesCount = g_boneNames.size();
 
 const char* g_settingsPath = "..\\..\\resources\\settings.xml";
 

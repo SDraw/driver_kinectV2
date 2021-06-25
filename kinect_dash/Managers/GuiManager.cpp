@@ -3,6 +3,7 @@
 #include "Core/Core.h"
 #include "Managers/ConfigManager.h"
 #include "Managers/GuiManager.h"
+#include "Managers/SfmlManager.h"
 #include "Managers/VRManager.h"
 
 #include "Gui/GuiScreen.h"
@@ -12,6 +13,8 @@
 #include "Gui/GuiInputText.h"
 #include "Gui/GuiSeparator.h"
 #include "Gui/GuiRadioButton.h"
+
+extern const size_t g_bonesCount;
 
 const std::string g_boneNames[]
 {
@@ -54,11 +57,15 @@ GuiManager::GuiManager(Core *f_core)
 {
     m_core = f_core;
 
+#ifndef DASHBOARD_DESKTOP
     m_renderTexture = new sf::RenderTexture();
     if(!m_renderTexture->create(1024, 512)) throw std::runtime_error("Unable to create render target for GUI overlay");
 
     sf::Window l_dummyWindow; // imgui-sfml checks only window focus
     ImGui::SFML::Init(l_dummyWindow, *m_renderTexture, false);
+#else
+    ImGui::SFML::Init(*m_core->GetSfmlManager()->GetWindow(), sf::Vector2f(1024.f, 512.f), false);
+#endif
 
     sf::Event l_event;
     l_event.type = sf::Event::EventType::GainedFocus;
@@ -98,7 +105,7 @@ GuiManager::GuiManager(Core *f_core)
     m_trackersWindow->SetSize(sf::Vector2f(658, 214));
     m_screen->Add(m_trackersWindow);
 
-    for(size_t i = 0U; i < 25U; i++)
+    for(size_t i = 0U; i < g_bonesCount; i++)
     {
         m_trackersButtons.push_back(new GuiButton(g_boneNames[i].c_str()));
 
@@ -110,7 +117,6 @@ GuiManager::GuiManager(Core *f_core)
         m_trackersButtons[i]->SetClickCallback(std::bind(&GuiManager::OnTrackerToggle, this, std::placeholders::_1, i));
 
         m_trackersWindow->Add(m_trackersButtons[i]);
-
     }
 
     // Calibration info
@@ -140,6 +146,7 @@ GuiManager::GuiManager(Core *f_core)
     m_settingsButtons.push_back(new GuiButton("Start calibration"));
     m_settingsButtons[SettingsButton::SB_StartCalibration]->SetPosition(sf::Vector2f(16.f, 48.f));
     m_settingsButtons[SettingsButton::SB_StartCalibration]->SetSize(sf::Vector2f(294.f, 32.f));
+    m_settingsButtons[SettingsButton::SB_StartCalibration]->SetColor(g_untoggledColor);
     m_settingsButtons[SettingsButton::SB_StartCalibration]->SetClickCallback(std::bind(&GuiManager::OnCalibrationStart, this, std::placeholders::_1));
     m_settingsWindow->Add(m_settingsButtons[SettingsButton::SB_StartCalibration]);
 
@@ -193,7 +200,7 @@ GuiManager::~GuiManager()
     delete m_calibrationWindow;
 
     // Trackers toggle
-    for(size_t i = 0U; i < 25U; i++) delete m_trackersButtons[i];
+    for(size_t i = 0U; i < g_bonesCount; i++) delete m_trackersButtons[i];
     m_trackersButtons.clear();
     delete m_trackersWindow;
 
@@ -201,13 +208,17 @@ GuiManager::~GuiManager()
     delete m_screen;
     ImGui::SFML::Shutdown();
 
+#ifndef DASHBOARD_DESKTOP
     delete m_renderTexture;
+#endif
 }
 
 void GuiManager::Render()
 {
+#ifndef DASHBOARD_DESKTOP
     if(m_core->GetVRManager()->IsOverlayVisible())
     {
+#endif
         // Update calibration info
         for(size_t i = 0U; i < 4; i++) m_calibrationFields[i * 2]->SetText(std::to_string(m_core->GetConfigManager()->GetBaseRotation()[i]));
         for(size_t i = 0U; i < 3; i++) m_calibrationFields[i * 2 + 1]->SetText(std::to_string(m_core->GetConfigManager()->GetBasePosition()[i]));
@@ -215,20 +226,26 @@ void GuiManager::Render()
         // Update gui elements
         m_screen->Update();
 
+#ifndef DASHBOARD_DESKTOP
         m_renderTexture->setActive(true);
         m_renderTexture->clear();
+#endif
         m_screen->Render();
+#ifndef DASHBOARD_DESKTOP
         m_renderTexture->display();
         m_renderTexture->setActive(false);
     }
+#endif
 }
 
+#ifndef DASHBOARD_DESKTOP
 unsigned int GuiManager::GetRenderTargetTextureName() const
 {
     unsigned int l_result = 0U;
     if(m_renderTexture) l_result = m_renderTexture->getTexture().getNativeHandle();
     return l_result;
 }
+#endif
 
 void GuiManager::ReceiveMouseMove(float f_x, float f_y)
 {
