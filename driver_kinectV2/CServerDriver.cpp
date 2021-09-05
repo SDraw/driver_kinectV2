@@ -261,7 +261,7 @@ void CServerDriver::KinectProcess()
         if(l_initialized)
         {
             m_kinectLock.lock();
-            m_kinectHandler->Update();
+            m_kinectHandler->Update(m_baseRotation);
             m_kinectLock.unlock();
         }
         else l_initialized = m_kinectHandler->Initialize();
