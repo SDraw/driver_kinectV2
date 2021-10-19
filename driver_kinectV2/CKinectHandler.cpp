@@ -8,7 +8,7 @@ CKinectHandler::CKinectHandler()
     m_kinectSensor = nullptr;
     m_bodyFrameReader = nullptr;
 
-    for(size_t i = 0U; i < _JointType::JointType_Count; i++) m_jointFilters[i] = new CJointFilter();
+    for(auto &l_filter : m_jointFilters) l_filter = new CJointFilter();
 
     m_frameData = new FrameData();
     m_frameData->m_frameTime = 0;
@@ -22,7 +22,8 @@ CKinectHandler::~CKinectHandler()
     Cleanup();
 
     delete m_frameData;
-    m_frameData = nullptr;
+    for(auto &l_filter : m_jointFilters) delete l_filter;
+
 }
 
 bool CKinectHandler::Initialize()
@@ -58,12 +59,6 @@ void CKinectHandler::Terminate()
 
 void CKinectHandler::Cleanup()
 {
-    for(size_t i = 0U; i < _JointType::JointType_Count; i++)
-    {
-        delete m_jointFilters[i];
-        m_jointFilters[i] = nullptr;
-    }
-
     if(m_bodyFrameReader)
     {
         m_bodyFrameReader->Release();
