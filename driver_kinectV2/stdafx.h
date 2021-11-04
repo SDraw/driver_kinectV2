@@ -21,3 +21,5 @@
 #include "glm/gtc/quaternion.hpp"
 
 #include "pugixml.hpp"
+
+#define M_PI 3.14159265358979323846

@@ -79,7 +79,7 @@
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(KINECTSDK20_DIR)\inc;</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(KINECTSDK20_DIR)\lib\x64;</LibraryPath>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
-    <OutDir>$(SolutionDir)bin\win64\</OutDir>
+    <OutDir>A:\Program Files %28x86%29\Steam\steamapps\common\SteamVR\drivers\kinectV2\bin\win64</OutDir>
     <IntDir>$(SolutionDir)objs\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
