@@ -74,29 +74,21 @@ vr::EVRInitError CServerDriver::Init(vr::IVRDriverContext *pDriverContext)
     m_kinectThread = new std::thread(&CServerDriver::KinectProcess, this);
 
     // Add trackers
-    m_trackers.assign(_JointType::JointType_Count, nullptr);
+    for(auto &l_tracker : m_trackers) l_tracker = nullptr;
     for(auto l_index : CDriverConfig::GetBoneIndexes())
     {
         m_trackers[l_index] = new CTrackerVive(l_index);
         m_trackers[l_index]->SetForcedConnected(m_trackingState);
+        m_trackers[l_index]->SetOffsetPosition(m_basePosition.x, m_basePosition.y, m_basePosition.z);
+        m_trackers[l_index]->SetOffsetRotation(m_baseRotation.x, m_baseRotation.y, m_baseRotation.z, m_baseRotation.w);
         vr::VRServerDriverHost()->TrackedDeviceAdded(m_trackers[l_index]->GetSerial().c_str(), vr::TrackedDeviceClass_GenericTracker, m_trackers[l_index]);
     }
 
     // Add fake station as command relay with Kinect model
     m_kinectStation = new CKinectStation(this);
-    vr::VRServerDriverHost()->TrackedDeviceAdded(m_kinectStation->GetSerial().c_str(), vr::TrackedDeviceClass_TrackingReference, m_kinectStation);
-
-    // Coordinates offset
     m_kinectStation->SetPosition(m_basePosition.x, m_basePosition.y, m_basePosition.z);
     m_kinectStation->SetRotation(m_baseRotation.x, m_baseRotation.y, m_baseRotation.z, m_baseRotation.w);
-    for(auto l_tracker : m_trackers)
-    {
-        if(l_tracker)
-        {
-            l_tracker->SetOffsetPosition(m_basePosition.x, m_basePosition.y, m_basePosition.z);
-            l_tracker->SetOffsetRotation(m_baseRotation.x, m_baseRotation.y, m_baseRotation.z, m_baseRotation.w);
-        }
-    }
+    vr::VRServerDriverHost()->TrackedDeviceAdded(m_kinectStation->GetSerial().c_str(), vr::TrackedDeviceClass_TrackingReference, m_kinectStation);
 
     m_dashboardLaunchTick = GetTickCount64();
 
@@ -105,8 +97,11 @@ vr::EVRInitError CServerDriver::Init(vr::IVRDriverContext *pDriverContext)
 
 void CServerDriver::Cleanup()
 {
-    for(auto l_tracker : m_trackers) delete l_tracker;
-    m_trackers.clear();
+    for(auto &l_tracker : m_trackers)
+    {
+        delete l_tracker;
+        l_tracker = nullptr;
+    }
 
     delete m_kinectStation;
     m_kinectStation = nullptr;
@@ -272,9 +267,9 @@ void CServerDriver::KinectProcess()
     if(l_initialized) m_kinectHandler->Terminate();
 }
 
-void CServerDriver::ProcessExternalMessage(const char *f_message)
+void CServerDriver::ProcessExternalMessage(const char *p_message)
 {
-    std::stringstream l_stream(f_message);
+    std::stringstream l_stream(p_message);
     std::string l_message;
     l_stream >> l_message;
     if(!l_message.empty() && !l_stream.fail())

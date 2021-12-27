@@ -16,7 +16,7 @@ class CServerDriver final : public vr::IServerTrackedDeviceProvider
     size_t m_frameHistoryCount;
 
     CEmulatedDevice *m_kinectStation;
-    std::vector<CEmulatedDevice*> m_trackers;
+    CEmulatedDevice *m_trackers[_JointType::JointType_Count];
 
     glm::vec3 m_basePosition;
     glm::quat m_baseRotation;
@@ -43,5 +43,5 @@ public:
     CServerDriver();
     ~CServerDriver();
 
-    void ProcessExternalMessage(const char *f_message);
+    void ProcessExternalMessage(const char *p_message);
 };
