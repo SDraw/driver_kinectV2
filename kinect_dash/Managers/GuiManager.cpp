@@ -59,7 +59,7 @@ GuiManager::GuiManager(Core *p_core)
 
 #ifndef DASHBOARD_DESKTOP
     m_renderTexture = new sf::RenderTexture();
-    if(!m_renderTexture->create(1024, 512)) throw std::runtime_error("Unable to create render target for GUI overlay");
+    if(!m_renderTexture->create(1024U, 512U)) throw std::runtime_error("Unable to create render target for GUI overlay");
 
     sf::Window l_dummyWindow; // imgui-sfml checks only window focus
     ImGui::SFML::Init(l_dummyWindow, *m_renderTexture, false);
